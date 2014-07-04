@@ -13,7 +13,12 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.help.ui,
  org.eclipse.help.webapp,
  org.eclipse.ui.cheatsheets,
- com.archimatetool.editor
+ com.archimatetool.editor,
+ org.eclipse.e4.ui.di,
+ org.eclipse.e4.ui.workbench,
+ org.eclipse.e4.ui.model.workbench,
+ org.eclipse.e4.ui.services,
+ org.eclipse.e4.core.di
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: com.archimatetool.help.jar
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

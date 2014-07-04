@@ -52,13 +52,13 @@
    </extension>
    <extension
          point="org.eclipse.ui.views">
-      <view
+      <e4view
             class="com.archimatetool.help.hints.HintsView"
             icon="img/hint-16.png"
             id="com.archimatetool.help.hintsView"
             name="%viewHints"
             restorable="true">
-      </view>
+      </e4view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">

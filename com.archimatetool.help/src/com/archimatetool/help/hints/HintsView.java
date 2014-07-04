@@ -10,6 +10,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Hashtable;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -17,15 +22,21 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.draw2d.ColorConstants;
+import org.eclipse.e4.core.di.annotations.Optional;
+import org.eclipse.e4.ui.di.Focus;
+import org.eclipse.e4.ui.model.application.ui.basic.MPart;
+import org.eclipse.e4.ui.model.application.ui.menu.ItemType;
+import org.eclipse.e4.ui.model.application.ui.menu.MDirectToolItem;
+import org.eclipse.e4.ui.model.application.ui.menu.MMenuFactory;
+import org.eclipse.e4.ui.model.application.ui.menu.MToolBar;
+import org.eclipse.e4.ui.services.IServiceConstants;
+import org.eclipse.e4.ui.workbench.modeling.EModelService;
+import org.eclipse.e4.ui.workbench.modeling.ESelectionService;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.help.HelpSystem;
 import org.eclipse.help.IContext;
 import org.eclipse.help.IContextProvider;
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
@@ -40,15 +51,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.part.ViewPart;
 import org.osgi.framework.Bundle;
 
 import com.archimatetool.editor.model.viewpoints.ViewpointsManager;
 import com.archimatetool.editor.ui.ColorFactory;
-import com.archimatetool.editor.ui.IArchimateImages;
 import com.archimatetool.editor.ui.services.ComponentSelectionManager;
 import com.archimatetool.editor.ui.services.IComponentSelectionListener;
 import com.archimatetool.editor.utils.PlatformUtils;
@@ -68,19 +75,16 @@ import com.archimatetool.model.ITechnologyLayerElement;
 
 
 /**
- * Hints View
+ * Hints View, e4 version
  * 
  * @author Phillip Beauvoir
  */
 public class HintsView
-extends ViewPart
-implements IContextProvider, IHintsView, ISelectionListener, IComponentSelectionListener {
+implements IContextProvider, IHintsView, IComponentSelectionListener {
     
     static File cssFile = new File(ArchimateEditorHelpPlugin.INSTANCE.getHintsFolder(), "style.css"); //$NON-NLS-1$
 
     private Browser fBrowser;
-    
-    private IAction fActionPinContent;
     
     private Hashtable<String, Hint> fLookupTable = new Hashtable<String, Hint>();
     
@@ -90,13 +94,13 @@ implements IContextProvider, IHintsView, ISelectionListener, IComponentSelection
     
     private boolean fPageLoaded;
     
-    private class PinAction extends Action {
-        PinAction() {
-            super(Messages.HintsView_0, IAction.AS_CHECK_BOX);
-            setToolTipText(Messages.HintsView_1);
-            setImageDescriptor(IArchimateImages.ImageFactory.getImageDescriptor(IArchimateImages.ICON_PIN_16));
-        }
-    }
+    @Inject
+    private MPart part;
+    
+    @Inject
+    private EModelService modelService;
+    
+    private MDirectToolItem fToolBarItemPinContent;
     
     /*
      * Hint Class
@@ -111,9 +115,8 @@ implements IContextProvider, IHintsView, ISelectionListener, IComponentSelection
         }
     }
 
-    
-    @Override
-    public void createPartControl(Composite parent) {
+    @PostConstruct
+    public void createPartControl(Composite parent, ESelectionService selectionService) {
         GridLayout layout = new GridLayout();
         layout.marginHeight = 0;
         layout.marginWidth = 0;
@@ -159,26 +162,47 @@ implements IContextProvider, IHintsView, ISelectionListener, IComponentSelection
         // Listen to Diagram Editor Selections
         ComponentSelectionManager.INSTANCE.addSelectionListener(this);
         
-        fActionPinContent = new PinAction();
-        
-        //IMenuManager menuManager = getViewSite().getActionBars().getMenuManager();
-        //menuManager.add(fActionPinContent);
+        // Add local toolbar
+        createToolBar();
 
-        IToolBarManager toolBarManager = getViewSite().getActionBars().getToolBarManager();
-        toolBarManager.add(fActionPinContent);
-        
+        // Create hint content
         createFileMap();
-        
-        // Listen to workbench selections
-        getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this);
         
         // Help
         PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, HELP_ID);
         
         // Initialise with whatever is selected in the workbench
-        ISelection selection = getSite().getWorkbenchWindow().getSelectionService().getSelection();
-        IWorkbenchPart part = getSite().getWorkbenchWindow().getPartService().getActivePart();
-        selectionChanged(part, selection);
+        setSelection(selectionService.getSelection());
+    }
+    
+    /**
+     * Create local toolbar
+     */
+    private void createToolBar() {
+        /*
+         * This toolbar and its children are created here in code, and then they are persisted in the application's workbench.xmi file.
+         * Here we check to see if these exist first before creating new ones.
+         * Ideally these would be created though an application model extension
+         */
+        
+        // Toolbar
+        MToolBar toolBar = part.getToolbar();
+        if(toolBar == null) {
+            toolBar = MMenuFactory.INSTANCE.createToolBar();
+            toolBar.setElementId(ID + ".toolbar"); //$NON-NLS-1$
+            part.setToolbar(toolBar);
+        }
+
+        // Toolbar button
+        fToolBarItemPinContent = (MDirectToolItem)modelService.find(ID + ".toolbar.pinContent", toolBar); //$NON-NLS-1$
+        if(fToolBarItemPinContent == null) {
+            fToolBarItemPinContent = MMenuFactory.INSTANCE.createDirectToolItem();
+            fToolBarItemPinContent.setType(ItemType.CHECK);
+            fToolBarItemPinContent.setIconURI("platform:/plugin/com.archimatetool.editor/img/pin.gif"); //$NON-NLS-1$
+            fToolBarItemPinContent.setTooltip(Messages.HintsView_1);
+            fToolBarItemPinContent.setElementId(ID + ".toolbar.pinContent"); //$NON-NLS-1$
+            toolBar.getChildren().add(fToolBarItemPinContent);
+        }
     }
     
     /**
@@ -206,7 +230,7 @@ implements IContextProvider, IHintsView, ISelectionListener, IComponentSelection
         return browser;
     }
 
-    @Override
+    @Focus
     public void setFocus() {
         /*
          * Need to do this otherwise we get a:
@@ -224,21 +248,28 @@ implements IContextProvider, IHintsView, ISelectionListener, IComponentSelection
         }
     }
     
-
     @Override
     public void componentSelectionChanged(Object component, Object selection) {
-        selectionChanged(component, selection);
+        doSelectionChanged(component, selection);
     }
 
-    public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-        if(selection instanceof IStructuredSelection && !selection.isEmpty()) {
-            Object selected = ((IStructuredSelection)selection).getFirstElement();
-            selectionChanged(part, selected);
+    /**
+     * Inject a selection listener for the Active Selection
+     * This is called before createPartControl() is called so we need to check whether components have been created.
+     */
+    @Inject
+    public void setSelection(@Named(IServiceConstants.ACTIVE_SELECTION) @Optional Object selection) {
+        if(selection instanceof IStructuredSelection) {
+            doSelectionChanged(null, ((IStructuredSelection)selection).getFirstElement());
         }
     }
     
-    public void selectionChanged(Object source, Object selected) {
-        if(fActionPinContent.isChecked()) {
+    private void doSelectionChanged(Object source, Object selected) {
+        if(fBrowser == null) { // Haven't created Part yet
+            return;
+        }
+        
+        if(fToolBarItemPinContent.isSelected()) {
             return;
         }
         
@@ -387,6 +418,9 @@ implements IContextProvider, IHintsView, ISelectionListener, IComponentSelection
         return null;
     }
     
+    /**
+     * Create a map of hints to files from hints declared in extension point
+     */
     private void createFileMap() {
         IExtensionRegistry registry = Platform.getExtensionRegistry();
         for(IConfigurationElement configurationElement : registry.getConfigurationElementsFor(EXTENSION_POINT_ID)) {
@@ -444,11 +478,9 @@ implements IContextProvider, IHintsView, ISelectionListener, IComponentSelection
     }
 
     
-    @Override
+    @PreDestroy
     public void dispose() {
-        super.dispose();
         ComponentSelectionManager.INSTANCE.removeSelectionListener(this);
-        getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this);
     }
     
     // =================================================================================

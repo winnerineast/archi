@@ -5,8 +5,6 @@
  */
 package com.archimatetool.help.hints;
 
-import org.eclipse.ui.IViewPart;
-
 import com.archimatetool.help.ArchimateEditorHelpPlugin;
 
 
@@ -15,7 +13,7 @@ import com.archimatetool.help.ArchimateEditorHelpPlugin;
  * 
  * @author Phillip Beauvoir
  */
-public interface IHintsView extends IViewPart {
+public interface IHintsView {
 
     String ID = "com.archimatetool.help.hintsView"; //$NON-NLS-1$
     String HELP_ID = ArchimateEditorHelpPlugin.PLUGIN_ID + ".hintsViewHelp"; //$NON-NLS-1$
