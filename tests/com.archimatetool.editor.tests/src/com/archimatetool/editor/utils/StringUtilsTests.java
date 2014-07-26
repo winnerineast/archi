@@ -157,6 +157,18 @@ public class StringUtilsTests {
         assertEquals("HelloWorld", StringUtils.replaceNewLineCharacters("Hello\rWorld", ""));
         assertEquals("HelloWorld", StringUtils.replaceNewLineCharacters("Hello\nWorld", ""));
     }
+    
+    @Test
+    public void testSquashNewLineCharacters() {
+        assertEquals("Hello World ", StringUtils.squashNewLineCharacters("Hello\r\n\r\n\r\nWorld\r\n", " "));
+        assertEquals(" Hello World ", StringUtils.squashNewLineCharacters("\rHello\r\r\rWorld\r", " "));
+        assertEquals(" Hello World", StringUtils.squashNewLineCharacters("\n\nHello\n\n\nWorld", " "));
+        
+        assertEquals("HelloWorld", StringUtils.squashNewLineCharacters("Hello\r\n\r\n\r\nWorld", ""));
+        assertEquals("HelloWorld", StringUtils.squashNewLineCharacters("Hello\rWorld", ""));
+        assertEquals("HelloWorld", StringUtils.squashNewLineCharacters("\n\nHello\n\nWorld\n\n", ""));
+    }
+
 
     @Test
     public void testCompareVersionNumbers() {

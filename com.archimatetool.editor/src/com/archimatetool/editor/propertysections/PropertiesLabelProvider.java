@@ -77,7 +77,7 @@ public class PropertiesLabelProvider implements ILabelProvider {
         // Check the main label provider
         String text = ArchimateLabelProvider.INSTANCE.getLabel(element);
         if(StringUtils.isSet(text)) {
-            text = StringUtils.replaceNewLineCharacters(text, " "); //$NON-NLS-1$
+            text = StringUtils.squashNewLineCharacters(text, " "); //$NON-NLS-1$
             return StringUtils.escapeAmpersandsInText(text);
         }
         
@@ -86,7 +86,7 @@ public class PropertiesLabelProvider implements ILabelProvider {
 
     private String getArchimateElementText(IArchimateElement element) {
         String name = StringUtils.escapeAmpersandsInText(element.getName());
-        name = StringUtils.replaceNewLineCharacters(name, " "); //$NON-NLS-1$
+        name = StringUtils.squashNewLineCharacters(name, " "); //$NON-NLS-1$
         
         String typeName = ArchimateLabelProvider.INSTANCE.getDefaultName(element.eClass());
         

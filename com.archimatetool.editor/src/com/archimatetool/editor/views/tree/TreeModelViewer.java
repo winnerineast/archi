@@ -248,7 +248,7 @@ public class TreeModelViewer extends TreeViewer {
                 name += ")"; //$NON-NLS-1$
             }
             
-            name = StringUtils.replaceNewLineCharacters(name, " "); //$NON-NLS-1$
+            name = StringUtils.squashNewLineCharacters(name, " "); //$NON-NLS-1$
 
             return name;
         }

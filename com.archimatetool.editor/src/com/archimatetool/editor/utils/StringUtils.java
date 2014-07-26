@@ -127,6 +127,20 @@ public final class StringUtils {
     }
     
     /**
+     * Replace all newline and cr characters from a String with given string and then 
+     * squash all instance of that
+     * @param text
+     * @param replace
+     * @return
+     */
+    public static String squashNewLineCharacters(String text, String replace) {
+        if(isSet(text)) {
+            return text.replaceAll("(\r\n|\r|\n)+", replace);  //$NON-NLS-1$
+        }
+        return text;
+    }
+    
+    /**
      * Compare two version numbers with the format 1, 1.1, or 1.1.1
      * 
      * From http://stackoverflow.com/questions/6701948/efficient-way-to-compare-version-strings-in-java

@@ -169,6 +169,10 @@ public class SearchFilter extends ViewerFilter {
             // Name...
             if(fFilterName && !textSearchResult && element instanceof INameable) {
                 String name = StringUtils.safeString(((INameable)element).getName());
+                
+                // Squash newlines in case of multi-line text
+                name = StringUtils.squashNewLineCharacters(name, " "); //$NON-NLS-1$
+                
                 if(name.toLowerCase().contains(fSearchText.toLowerCase())) {
                     textSearchResult = true;
                 }
