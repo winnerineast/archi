@@ -50,7 +50,7 @@ public class NameSection extends AbstractArchimatePropertySection {
     
     @Override
     protected void createControls(Composite parent) {
-        fTextName = createNameControl(parent, Messages.NameSection_0);
+        fTextName = createNameControl(parent, Messages.NameSection_0, false);
 
         // Help
         PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, HELP_ID);

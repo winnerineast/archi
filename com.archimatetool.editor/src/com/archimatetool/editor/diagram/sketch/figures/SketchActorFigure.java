@@ -5,12 +5,14 @@
  */
 package com.archimatetool.editor.diagram.sketch.figures;
 
+import org.eclipse.draw2d.FigureUtilities;
 import org.eclipse.draw2d.Graphics;
 import org.eclipse.draw2d.IFigure;
+import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.SWT;
 
-import com.archimatetool.editor.diagram.figures.AbstractLabelFigure;
+import com.archimatetool.editor.diagram.figures.AbstractTextFlowFigure;
 import com.archimatetool.editor.diagram.figures.ToolTipFigure;
 import com.archimatetool.editor.ui.ArchimateLabelProvider;
 import com.archimatetool.model.ISketchModelActor;
@@ -22,7 +24,7 @@ import com.archimatetool.model.ISketchModelActor;
  * 
  * @author Phillip Beauvoir
  */
-public class SketchActorFigure extends AbstractLabelFigure {
+public class SketchActorFigure extends AbstractTextFlowFigure {
 
     public SketchActorFigure(ISketchModelActor actor) {
         super(actor);
@@ -39,7 +41,7 @@ public class SketchActorFigure extends AbstractLabelFigure {
         
         graphics.setLineWidth(2);
         
-        bounds.height -= getLabel().getPreferredSize().height;
+        bounds.height -= getTextControl().getPreferredSize().height;
         
         int narrowest = Math.min(bounds.width, bounds.height);
         
@@ -64,9 +66,12 @@ public class SketchActorFigure extends AbstractLabelFigure {
 
     @Override
     public Rectangle calculateTextControlBounds() {
+        String text = getDiagramModelObject().getName();
+        Dimension d = FigureUtilities.getTextExtents(text, getTextControl().getFont());
+        
         Rectangle bounds = getBounds().getCopy();
-        bounds.y += bounds.height - getLabel().getPreferredSize().height;
-        bounds.height = getLabel().getPreferredSize().height;
+        bounds.y += bounds.height - d.height;
+        bounds.height = d.height;
         
         return bounds;
     }

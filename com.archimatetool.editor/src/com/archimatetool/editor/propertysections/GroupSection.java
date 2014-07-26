@@ -54,7 +54,7 @@ public class GroupSection extends AbstractArchimatePropertySection {
     
     @Override
     protected void createControls(Composite parent) {
-        fTextName = createNameControl(parent, Messages.GroupSection_0);
+        fTextName = createNameControl(parent, Messages.GroupSection_0, false);
         fTextDocumentation = createDocumentationControl(parent, Messages.GroupSection_1);
         
         // Help ID

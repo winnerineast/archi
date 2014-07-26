@@ -63,7 +63,7 @@ public class ArchimateModelSection extends AbstractArchimatePropertySection {
     
     @Override
     protected void createControls(Composite parent) {
-        fTextName = createNameControl(parent, Messages.ArchimateModelSection_0);
+        fTextName = createNameControl(parent, Messages.ArchimateModelSection_0, false);
         createFileControl(parent);
         createPurposeControl(parent);
         

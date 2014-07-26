@@ -49,7 +49,7 @@ public class DiagramModelReferenceSection extends AbstractArchimatePropertySecti
     
     @Override
     protected void createControls(Composite parent) {
-        fTextName = createNameControl(parent, Messages.DiagramModelSection_0);
+        fTextName = createNameControl(parent, Messages.DiagramModelSection_0, true);
 
         // Help
         PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, HELP_ID);

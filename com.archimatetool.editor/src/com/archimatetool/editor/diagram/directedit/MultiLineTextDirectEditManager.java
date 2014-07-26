@@ -10,8 +10,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
+import com.archimatetool.editor.diagram.figures.connections.IDiagramConnectionFigure;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.IFontAttribute;
+import com.archimatetool.model.INameable;
 import com.archimatetool.model.ITextContent;
 
 
@@ -54,17 +56,20 @@ public class MultiLineTextDirectEditManager extends AbstractDirectEditManager {
     protected void initCellEditor() {
         super.initCellEditor();
         
-        IFigure figure = getEditPart().getFigure();
+        Text textControl = (Text)getCellEditor().getControl();
         Object model = getEditPart().getModel();
         
         if(model instanceof ITextContent) {
             String value = ((ITextContent)model).getContent();
             getCellEditor().setValue(StringUtils.safeString(value));
         }
+        else if(model instanceof INameable) {
+            String value = ((INameable)model).getName();
+            getCellEditor().setValue(StringUtils.safeString(value));
+        }
 
-        Text text = (Text)getCellEditor().getControl();
-        text.setFont(figure.getFont());
-        //text.setForeground(figure.getTextControl().getForegroundColor());
+        IFigure figure = getEditPart().getFigure();
+        textControl.setFont(figure.getFont());
     }
 
     /**
@@ -74,9 +79,20 @@ public class MultiLineTextDirectEditManager extends AbstractDirectEditManager {
         public void relocate(CellEditor celleditor) {
             IFigure figure = getEditPart().getFigure();
             Text text = (Text)celleditor.getControl();
-            Rectangle rect = figure.getBounds().getCopy();
-            figure.translateToAbsolute(rect);
-            text.setBounds(rect.x + 5, rect.y + 5, rect.width, rect.height);
+            
+            // Connection
+            if(figure instanceof IDiagramConnectionFigure) {
+                IFigure label = ((IDiagramConnectionFigure)figure).getConnectionLabel();
+                Rectangle rect = label.getBounds().getCopy();
+                label.translateToAbsolute(rect);
+                text.setBounds(rect.x, rect.y, Math.max(150, rect.width + 30), Math.max(40, rect.height));
+            }
+            // Other
+            else {
+                Rectangle rect = figure.getBounds().getCopy();
+                figure.translateToAbsolute(rect);
+                text.setBounds(rect.x + 5, rect.y + 5, rect.width, rect.height);
+            }
         }
     }
     

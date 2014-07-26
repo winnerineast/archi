@@ -53,7 +53,7 @@ public class DiagramModelSection extends AbstractArchimatePropertySection {
 
     @Override
     protected void createControls(Composite parent) {
-        fTextName = createNameControl(parent, Messages.DiagramModelSection_0);
+        fTextName = createNameControl(parent, Messages.DiagramModelSection_0, false);
         fTextDocumentation = createDocumentationControl(parent, Messages.DiagramModelSection_1);
         
         // Help ID

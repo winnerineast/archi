@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Widget;
 import com.archimatetool.editor.model.DiagramModelUtils;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.ArchimateLabelProvider;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.editor.views.tree.search.SearchFilter;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateElement;
@@ -247,6 +248,8 @@ public class TreeModelViewer extends TreeViewer {
                 name += ")"; //$NON-NLS-1$
             }
             
+            name = StringUtils.replaceNewLineCharacters(name, " "); //$NON-NLS-1$
+
             return name;
         }
         

@@ -20,9 +20,9 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewSite;
 
-import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.ui.components.CellEditorGlobalActionHandler;
 import com.archimatetool.editor.ui.services.ViewManager;
+import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.editor.views.tree.commands.RenameCommandHandler;
 import com.archimatetool.model.INameable;
 
@@ -55,6 +55,9 @@ public class TreeCellEditor {
     private CellEditorGlobalActionHandler fGlobalActionHandler;
     
     private boolean EDIT_ON_CLICK = false;
+    
+    // Used as replacement for newline/cr
+    static final String NEWLINE_CHARACTER = Character.toString((char)182);
     
     public TreeCellEditor(Tree tree) {
         fTree = tree;
@@ -174,9 +177,6 @@ public class TreeCellEditor {
                 }
             };
             
-            // Do this *before* adding our text listener
-            UIUtils.conformSingleTextControl(fText);
-
             fText.addListener(SWT.Deactivate, textListener);
             fText.addListener(SWT.Traverse, textListener);
             fText.addListener(SWT.Verify, textListener);
@@ -194,7 +194,12 @@ public class TreeCellEditor {
             fGlobalActionHandler = new CellEditorGlobalActionHandler(((IViewSite)viewPart.getSite()).getActionBars());
             fGlobalActionHandler.clearGlobalActions();
             
-            fText.setText(fElement.getName());
+            String text = fElement.getName();
+            
+            // Replace newline characters
+            text = StringUtils.replaceNewLineCharacters(text, NEWLINE_CHARACTER);
+            
+            fText.setText(text);
             fText.selectAll();
             fText.setFocus();
 
@@ -210,6 +215,10 @@ public class TreeCellEditor {
     private void finaliseEdit() {
         if(isEditing()) {
             String updatedText = fText.getText();
+            
+            // Replace temp newline/cr chars
+            updatedText = updatedText.replace(NEWLINE_CHARACTER, System.getProperty("line.separator")); //$NON-NLS-1$
+            
             if(!updatedText.equals(fElement.getName())) {
                 disposeEditor();
                 RenameCommandHandler.doRenameCommand(fElement, updatedText);

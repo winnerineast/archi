@@ -35,7 +35,7 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.osgi.util.NLS;
 
 import com.archimatetool.editor.diagram.commands.DiagramCommandFactory;
-import com.archimatetool.editor.diagram.directedit.LabelDirectEditManager;
+import com.archimatetool.editor.diagram.directedit.MultiLineTextDirectEditManager;
 import com.archimatetool.editor.diagram.figures.connections.IDiagramConnectionFigure;
 import com.archimatetool.editor.diagram.policies.ManualBendpointEditPolicy;
 import com.archimatetool.editor.model.commands.EObjectFeatureCommand;
@@ -223,7 +223,7 @@ implements IDiagramConnectionEditPart {
     }
     
     protected DirectEditManager createDirectEditManager() {
-        return new LabelDirectEditManager(this, getFigure().getConnectionLabel());
+        return new MultiLineTextDirectEditManager(this);
     }
     
     @Override

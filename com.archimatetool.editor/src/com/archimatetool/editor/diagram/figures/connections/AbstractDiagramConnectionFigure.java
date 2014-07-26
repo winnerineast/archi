@@ -8,13 +8,13 @@ package com.archimatetool.editor.diagram.figures.connections;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.ConnectionLocator;
 import org.eclipse.draw2d.IFigure;
-import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.Locator;
 import org.eclipse.draw2d.PolygonDecoration;
-// line-curves patch by Jean-Baptiste Sarrodie (aka Jaiguru)
-// Use alternate PolylineConnection
-//import org.eclipse.draw2d.PolylineConnection;
 import org.eclipse.draw2d.geometry.Point;
+import org.eclipse.draw2d.text.BlockFlow;
+import org.eclipse.draw2d.text.FlowPage;
+import org.eclipse.draw2d.text.ParagraphTextLayout;
+import org.eclipse.draw2d.text.TextFlow;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 
@@ -26,6 +26,9 @@ import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.FontFactory;
 import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.model.IDiagramModelConnection;
+// line-curves patch by Jean-Baptiste Sarrodie (aka Jaiguru)
+// Use alternate PolylineConnection
+//import org.eclipse.draw2d.PolylineConnection;
 
 
 
@@ -38,7 +41,8 @@ public abstract class AbstractDiagramConnectionFigure
 extends RoundedPolylineConnection implements IDiagramConnectionFigure {
 //extends PolylineConnection implements IDiagramConnectionFigure {
 
-    private Label fConnectionLabel;
+    private FlowPage fFlowPage;
+    private TextFlow fConnectionLabel;
     
     protected int fTextPosition = -1;
     
@@ -49,6 +53,15 @@ extends RoundedPolylineConnection implements IDiagramConnectionFigure {
     
 	public AbstractDiagramConnectionFigure(IDiagramModelConnection connection) {
 	    fDiagramModelConnection = connection;
+	    
+	    // Text Control
+	    fFlowPage = new FlowPage();
+        BlockFlow block = new BlockFlow();
+        fConnectionLabel = new TextFlow();
+        fConnectionLabel.setLayoutManager(new ParagraphTextLayout(fConnectionLabel, ParagraphTextLayout.WORD_WRAP_TRUNCATE));
+        block.add(fConnectionLabel);
+        fFlowPage.add(block);
+        add(fFlowPage);
 
 	    setFigureProperties();
 	    
@@ -98,16 +111,12 @@ extends RoundedPolylineConnection implements IDiagramConnectionFigure {
      * @return True if the user clicked on the Relationship edit label
      */
     public boolean didClickConnectionLabel(Point requestLoc) {
-        Label label = getConnectionLabel();
+        IFigure label = getConnectionLabel();
         label.translateToRelative(requestLoc);
         return label.containsPoint(requestLoc);
     }
 
-    public Label getConnectionLabel() {
-        if(fConnectionLabel == null) {
-            fConnectionLabel = new Label(""); //$NON-NLS-1$
-            add(fConnectionLabel);
-        }
+    public TextFlow getConnectionLabel() {
         return fConnectionLabel;
     }
 
@@ -126,7 +135,7 @@ extends RoundedPolylineConnection implements IDiagramConnectionFigure {
                 break;
         }
         
-        setConstraint(getConnectionLabel(), locator);
+        setConstraint(fFlowPage, locator);
     }
     
     protected void setConnectionText() {
@@ -146,6 +155,7 @@ extends RoundedPolylineConnection implements IDiagramConnectionFigure {
         }
 
         getConnectionLabel().setFont(font);
+        setFont(font);
     }
 
     /**

@@ -12,7 +12,7 @@ import org.eclipse.gef.RequestConstants;
 import org.eclipse.gef.requests.LocationRequest;
 import org.eclipse.gef.tools.DirectEditManager;
 
-import com.archimatetool.editor.diagram.directedit.LabelDirectEditManager;
+import com.archimatetool.editor.diagram.directedit.MultiLineTextDirectEditManager;
 import com.archimatetool.editor.diagram.editparts.AbstractConnectedEditPart;
 import com.archimatetool.editor.diagram.editparts.IColoredEditPart;
 import com.archimatetool.editor.diagram.editparts.ITextEditPart;
@@ -84,6 +84,6 @@ implements IColoredEditPart, ITextEditPart  {
     }
     
     protected DirectEditManager createDirectEditManager() {
-        return new LabelDirectEditManager(this, getFigure().getTextControl());
+        return new MultiLineTextDirectEditManager(this);
     }
 }

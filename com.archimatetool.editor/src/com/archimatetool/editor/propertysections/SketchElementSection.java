@@ -52,7 +52,7 @@ public class SketchElementSection extends AbstractArchimatePropertySection {
     
     @Override
     protected void createControls(Composite parent) {
-        fTextName = createNameControl(parent, Messages.SketchElementSection_0);
+        fTextName = createNameControl(parent, Messages.SketchElementSection_0, true);
         fTextDocumentation = createDocumentationControl(parent, Messages.SketchElementSection_1);
 
         // Help

@@ -67,7 +67,7 @@ public class ArchimateElementSection extends AbstractArchimatePropertySection {
     
     @Override
     protected void createControls(Composite parent) {
-        fTextName = createNameControl(parent, Messages.ArchimateElementSection_0);
+        fTextName = createNameControl(parent, Messages.ArchimateElementSection_0, true);
         fTextDocumentation = createDocumentationControl(parent, Messages.ArchimateElementSection_1);
 
         // Help ID

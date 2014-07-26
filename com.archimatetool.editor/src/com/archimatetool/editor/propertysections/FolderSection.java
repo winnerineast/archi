@@ -54,7 +54,7 @@ public class FolderSection extends AbstractArchimatePropertySection {
     
     @Override
     protected void createControls(Composite parent) {
-        fTextName = createNameControl(parent, Messages.FolderSection_0);
+        fTextName = createNameControl(parent, Messages.FolderSection_0, false);
         fTextDocumentation = createDocumentationControl(parent, Messages.FolderSection_1);
         
         // Help ID

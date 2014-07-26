@@ -6,7 +6,7 @@
 package com.archimatetool.editor.diagram.figures.connections;
 
 import org.eclipse.draw2d.Connection;
-import org.eclipse.draw2d.Label;
+import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.geometry.Point;
 
 
@@ -31,7 +31,7 @@ public interface IDiagramConnectionFigure extends Connection {
     /**
      * @return
      */
-    Label getConnectionLabel();
+    IFigure getConnectionLabel();
     
     /**
      * Highlight the connection

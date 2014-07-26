@@ -71,7 +71,7 @@ public class DiagramConnectionNameDocumentationSection extends AbstractArchimate
     
     @Override
     protected void createControls(Composite parent) {
-        fTextName = createNameControl(parent, Messages.DiagramConnectionNameDocumentationSection_0);
+        fTextName = createNameControl(parent, Messages.DiagramConnectionNameDocumentationSection_0, true);
         fTextDocumentation = createDocumentationControl(parent, Messages.DiagramConnectionNameDocumentationSection_1);
 
         // Help ID

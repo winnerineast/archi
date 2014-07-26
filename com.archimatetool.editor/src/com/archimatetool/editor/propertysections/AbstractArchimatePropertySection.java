@@ -15,6 +15,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPart;
@@ -148,14 +149,28 @@ public abstract class AbstractArchimatePropertySection extends AbstractPropertyS
     /**
      * Create a Name control
      */
-    protected PropertySectionTextControl createNameControl(Composite parent, String hint) {
+    protected PropertySectionTextControl createNameControl(Composite parent, String hint, boolean multiLine) {
         // Label
-        createLabel(parent, Messages.AbstractArchimatePropertySection_0, ITabbedLayoutConstants.STANDARD_LABEL_WIDTH, SWT.CENTER);
+        createLabel(parent, Messages.AbstractArchimatePropertySection_0, ITabbedLayoutConstants.STANDARD_LABEL_WIDTH,
+                multiLine ? SWT.NONE : SWT.CENTER);
+        
+        Control control;
 
         // Text
-        Text textControl = createSingleTextControl(parent, SWT.NONE);
+        if(multiLine) {
+            StyledTextControl styledTextControl = createStyledTextControl(parent, SWT.NONE);
+            control = styledTextControl.getControl();
+            
+            GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false);
+            gd.heightHint = 90;
+            control.setLayoutData(gd);
+        }
+        else {
+            Text textControl = createSingleTextControl(parent, SWT.NONE);
+            control = textControl;
+        }
         
-        PropertySectionTextControl textName = new PropertySectionTextControl(textControl, IArchimatePackage.Literals.NAMEABLE__NAME) {
+        PropertySectionTextControl textName = new PropertySectionTextControl(control, IArchimatePackage.Literals.NAMEABLE__NAME) {
             @Override
             protected void textChanged(String oldText, String newText) {
                 if(isAlive()) {
