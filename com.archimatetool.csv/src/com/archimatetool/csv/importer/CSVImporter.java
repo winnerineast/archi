@@ -281,7 +281,7 @@ public class CSVImporter implements CSVConstants {
             throw new CSVParseException("Type should be of ArchiMate element type");
         }
 
-        String name = normalise(csvRecord.get(2));
+        String name = csvRecord.get(2);
         String documentation = csvRecord.get(3);
         
         // Is the element already in the model?
