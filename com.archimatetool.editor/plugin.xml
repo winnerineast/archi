@@ -251,7 +251,7 @@
                tab="main.tab">
          </propertySection>
          <propertySection
-               afterSection="archimateElementSection"
+               afterSection="lineColorSection"
                class="com.archimatetool.editor.propertysections.DiagramConnectionSection"
                id="connectionAppearanceSection"
                tab="appearance.tab">
@@ -304,23 +304,14 @@
          <propertySection
                afterSection="fillColorSection"
                class="com.archimatetool.editor.propertysections.FontSection"
-               id="fontSection1"
+               id="fontSection"
                tab="appearance.tab">
             <input
                   type="com.archimatetool.editor.diagram.editparts.ITextEditPart">
             </input>
          </propertySection>
          <propertySection
-               afterSection="connectionTypeSection"
-               class="com.archimatetool.editor.propertysections.FontSection"
-               id="fontSection2"
-               tab="appearance.tab">
-            <input
-                  type="com.archimatetool.editor.diagram.editparts.connections.IDiagramConnectionEditPart">
-            </input>
-         </propertySection>
-         <propertySection
-               afterSection="fontSection1"
+               afterSection="fontSection"
                class="com.archimatetool.editor.propertysections.FontColorSection"
                id="fontColorSection1"
                tab="appearance.tab">
@@ -329,16 +320,7 @@
             </input>
          </propertySection>
          <propertySection
-               afterSection="fontSection2"
-               class="com.archimatetool.editor.propertysections.FontColorSection"
-               id="fontColorSection2"
-               tab="appearance.tab">
-            <input
-                  type="com.archimatetool.editor.diagram.editparts.connections.IDiagramConnectionEditPart">
-            </input>
-         </propertySection>
-         <propertySection
-               afterSection="fontColorSection2"
+               afterSection="fontColorSection"
                class="com.archimatetool.editor.propertysections.LineColorSection"
                filter="com.archimatetool.editor.propertysections.LineColorSection$Filter"
                id="lineColorSection"

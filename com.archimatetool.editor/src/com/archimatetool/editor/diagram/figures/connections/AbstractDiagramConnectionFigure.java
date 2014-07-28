@@ -29,6 +29,7 @@ import com.archimatetool.model.IDiagramModelConnection;
 // line-curves patch by Jean-Baptiste Sarrodie (aka Jaiguru)
 // Use alternate PolylineConnection
 //import org.eclipse.draw2d.PolylineConnection;
+import com.archimatetool.model.IFontAttribute;
 
 
 
@@ -93,6 +94,14 @@ extends RoundedPolylineConnection implements IDiagramConnectionFigure {
         setConnectionText();
         
         setLineWidth();
+        
+        // Alignment default is CENTER
+        int alignment = getModelConnection().getTextAlignment();
+        if(alignment == IFontAttribute.TEXT_ALIGNMENT_NONE) {
+            alignment = getModelConnection().getDefaultTextAlignment();
+        }
+        ((BlockFlow)getConnectionLabel().getParent()).setHorizontalAligment(alignment);
+
         
         // Set Enabled according to current Viewpoint
         boolean enabled = ViewpointsManager.INSTANCE.isAllowedType(getModelConnection());
