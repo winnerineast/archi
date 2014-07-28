@@ -50,6 +50,7 @@ public class ArchimateLabelProvider implements IEditorLabelProvider {
         // Get Name
         if(element instanceof INameable) {
             name = ((INameable)element).getName();
+            name = StringUtils.squashNewLineCharacters(name, " "); //$NON-NLS-1$
         }
         
         // It's blank. Can we get a default name from its class?

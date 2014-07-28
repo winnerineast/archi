@@ -77,7 +77,6 @@ public class PropertiesLabelProvider implements ILabelProvider {
         // Check the main label provider
         String text = ArchimateLabelProvider.INSTANCE.getLabel(element);
         if(StringUtils.isSet(text)) {
-            text = StringUtils.squashNewLineCharacters(text, " "); //$NON-NLS-1$
             return StringUtils.escapeAmpersandsInText(text);
         }
         
