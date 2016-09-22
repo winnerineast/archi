@@ -5,7 +5,8 @@
  */
 package com.archimatetool.editor.diagram.commands;
 
-import org.eclipse.draw2d.geometry.Dimension;
+import org.eclipse.draw2d.geometry.Point;
+import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CompoundCommand;
 
@@ -104,9 +105,10 @@ extends Command {
         }
         
         // If it's a circular connection, add some bendpoints if there are none
-        if(fConnection.getSource() == fConnection.getTarget() && fConnection.getBendpoints().size() < 2) {
+        if(fConnection.getSource() == fConnection.getTarget() && fConnection.getBendpoints().size() < 2 &&
+                fConnection.getTarget() instanceof IDiagramModelObject) {
             if(fBendpointCommand == null) {
-                fBendpointCommand = createBendPointsCommand();
+                fBendpointCommand = createCircularBendPoints((IDiagramModelObject)fConnection.getTarget());
             }
             if(fBendpointCommand != null) {
                 fBendpointCommand.execute();
@@ -129,42 +131,28 @@ extends Command {
     /**
      * Adding a circular connection requires some bendpoints
      */
-    protected Command createBendPointsCommand() {
-        // Only works for IDiagramModelObject as source and target objects not for connections
-        if(!(fConnection.getSource() instanceof IDiagramModelObject) && !(fConnection.getTarget() instanceof IDiagramModelObject)) {
-            return null;
-        }
-        
-        IDiagramModelObject source = (IDiagramModelObject)fConnection.getSource();
-        IDiagramModelObject target = (IDiagramModelObject)fConnection.getTarget();
-
-        int width = source.getBounds().getWidth();
-        if(width == -1) {
-            width = 100;
-        }
-        int height = target.getBounds().getHeight();
-        if(height == -1) {
-            height = 60;
-        }
-        
-        width = (int)Math.max(100, width * 0.6);
-        height = (int)Math.max(60, height * 0.6);
+    protected Command createCircularBendPoints(IDiagramModelObject dmo) {
+        Rectangle bounds = new Rectangle(dmo.getBounds().getX(), dmo.getBounds().getY(), dmo.getBounds().getWidth(),
+                dmo.getBounds().getHeight());
         
         CompoundCommand result = new CompoundCommand();
         
         CreateBendpointCommand cmd = new CreateBendpointCommand();
         cmd.setDiagramModelConnection(fConnection);
-        cmd.setRelativeDimensions(new Dimension(width, 0), new Dimension(width, 0));
+        Point pt = new Point(bounds.getRight().x + 40, bounds.getCenter().y);
+        cmd.setLocation(pt);
         result.add(cmd);
         
         cmd = new CreateBendpointCommand();
         cmd.setDiagramModelConnection(fConnection);
-        cmd.setRelativeDimensions(new Dimension(width, height), new Dimension(width, height));
+        pt = new Point(bounds.getRight().x + 40, bounds.getBottom().y + 40);
+        cmd.setLocation(pt);
         result.add(cmd);
         
         cmd = new CreateBendpointCommand();
         cmd.setDiagramModelConnection(fConnection);
-        cmd.setRelativeDimensions(new Dimension(0, height), new Dimension(0, height));
+        pt = new Point(bounds.getCenter().x, bounds.getBottom().y + 40);
+        cmd.setLocation(pt);
         result.add(cmd);
         
         return result;

@@ -5,7 +5,6 @@
  */
 package com.archimatetool.editor.diagram.commands;
 
-import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.gef.commands.Command;
 
@@ -25,18 +24,8 @@ public abstract class BendpointCommand extends Command {
 
     protected IDiagramModelConnection connection;
 
-    private Dimension d1, d2;
-    
     protected BendpointCommand(String label) {
         super(label);
-    }
-
-    protected Dimension getFirstRelativeDimension() {
-        return d1;
-    }
-
-    protected Dimension getSecondRelativeDimension() {
-        return d2;
     }
 
     protected int getIndex() {
@@ -49,11 +38,6 @@ public abstract class BendpointCommand extends Command {
 
     protected IDiagramModelConnection getDiagramModelConnection() {
         return connection;
-    }
-
-    public void setRelativeDimensions(Dimension dim1, Dimension dim2) {
-        d1 = dim1;
-        d2 = dim2;
     }
 
     public void setIndex(int i) {

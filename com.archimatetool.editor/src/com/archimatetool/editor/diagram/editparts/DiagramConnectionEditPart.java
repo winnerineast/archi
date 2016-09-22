@@ -10,12 +10,11 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.draw2d.AbsoluteBendpoint;
 import org.eclipse.draw2d.Bendpoint;
 import org.eclipse.draw2d.Connection;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.ManhattanConnectionRouter;
-import org.eclipse.draw2d.RelativeBendpoint;
-import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.impl.AdapterImpl;
@@ -331,13 +330,9 @@ public class DiagramConnectionEditPart extends AbstractConnectionEditPart {
         for(int i = 0; i < bendpoints.size(); i++) {
             IDiagramModelBendpoint bendpoint = bendpoints.get(i);
             
-            RelativeBendpoint rbp = new RelativeBendpoint(getConnectionFigure());
-            Dimension dim1 = new Dimension(bendpoint.getStartX(), bendpoint.getStartY());
-            Dimension dim2 = new Dimension(bendpoint.getEndX(), bendpoint.getEndY());
-            rbp.setRelativeDimensions(dim1, dim2);
-            rbp.setWeight((i + 1) / ((float)bendpoints.size() + 1));
+            AbsoluteBendpoint bp = new AbsoluteBendpoint(bendpoint.getX(), bendpoint.getY());
             
-            figureConstraint.add(rbp);
+            figureConstraint.add(bp);
         }
         
         getConnectionFigure().setRoutingConstraint(figureConstraint);

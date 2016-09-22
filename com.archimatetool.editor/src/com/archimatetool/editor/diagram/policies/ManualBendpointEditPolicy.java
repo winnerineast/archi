@@ -37,13 +37,7 @@ public class ManualBendpointEditPolicy extends ExtendedBendpointEditPolicy {
         conn.translateToRelative(p);
 
         command.setLocation(p);
-        Point ref1 = getConnection().getSourceAnchor().getReferencePoint();
-        Point ref2 = getConnection().getTargetAnchor().getReferencePoint();
-
-        conn.translateToRelative(ref1);
-        conn.translateToRelative(ref2);
-
-        command.setRelativeDimensions(p.getDifference(ref1), p.getDifference(ref2));
+        
         command.setDiagramModelConnection((IDiagramModelConnection)request.getSource().getModel());
         command.setIndex(request.getIndex());
         
@@ -72,13 +66,6 @@ public class ManualBendpointEditPolicy extends ExtendedBendpointEditPolicy {
 
         command.setLocation(p);
 
-        Point ref1 = getConnection().getSourceAnchor().getReferencePoint();
-        Point ref2 = getConnection().getTargetAnchor().getReferencePoint();
-
-        conn.translateToRelative(ref1);
-        conn.translateToRelative(ref2);
-
-        command.setRelativeDimensions(p.getDifference(ref1), p.getDifference(ref2));
         command.setDiagramModelConnection((IDiagramModelConnection)request.getSource().getModel());
         command.setIndex(request.getIndex());
         

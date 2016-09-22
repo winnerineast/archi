@@ -34,25 +34,19 @@ public class DiagramModelBendpointTests {
     @Test
     public void testDefaultValues() {
         assertNotNull(bp);
-        assertEquals(0, bp.getStartX());
-        assertEquals(0, bp.getStartY());
-        assertEquals(0, bp.getEndX());
-        assertEquals(0, bp.getEndY());
+        assertEquals(0, bp.getX());
+        assertEquals(0, bp.getY());
     }
 
     @Test
     public void testSetValues() {
         assertNotNull(bp);
         
-        bp.setStartX(1);
-        bp.setStartY(2);
-        bp.setEndX(3);
-        bp.setEndY(4);
+        bp.setX(1);
+        bp.setY(2);
         
-        assertEquals(1, bp.getStartX());
-        assertEquals(2, bp.getStartY());
-        assertEquals(3, bp.getEndX());
-        assertEquals(4, bp.getEndY());
+        assertEquals(1, bp.getX());
+        assertEquals(2, bp.getY());
     }
 
 }

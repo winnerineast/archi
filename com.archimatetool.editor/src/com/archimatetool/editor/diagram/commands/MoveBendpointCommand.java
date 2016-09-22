@@ -5,8 +5,6 @@
  */
 package com.archimatetool.editor.diagram.commands;
 
-import org.eclipse.draw2d.geometry.Dimension;
-
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IDiagramModelBendpoint;
 
@@ -30,13 +28,8 @@ public class MoveBendpointCommand extends BendpointCommand implements IAnimatabl
         
         fNewBendpoint = IArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
         
-        Dimension dim1 = getFirstRelativeDimension();
-        fNewBendpoint.setStartX(dim1.width);
-        fNewBendpoint.setStartY(dim1.height);
-        
-        Dimension dim2 = getSecondRelativeDimension();
-        fNewBendpoint.setEndX(dim2.width);
-        fNewBendpoint.setEndY(dim2.height);
+        fNewBendpoint.setX(getLocation().x);
+        fNewBendpoint.setY(getLocation().y);
         
         redo();
     }

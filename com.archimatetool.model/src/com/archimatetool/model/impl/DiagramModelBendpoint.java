@@ -24,94 +24,52 @@ import com.archimatetool.model.IDiagramModelBendpoint;
  * The following features are implemented:
  * </p>
  * <ul>
- *   <li>{@link com.archimatetool.model.impl.DiagramModelBendpoint#getStartX <em>Start X</em>}</li>
- *   <li>{@link com.archimatetool.model.impl.DiagramModelBendpoint#getStartY <em>Start Y</em>}</li>
- *   <li>{@link com.archimatetool.model.impl.DiagramModelBendpoint#getEndX <em>End X</em>}</li>
- *   <li>{@link com.archimatetool.model.impl.DiagramModelBendpoint#getEndY <em>End Y</em>}</li>
+ *   <li>{@link com.archimatetool.model.impl.DiagramModelBendpoint#getX <em>X</em>}</li>
+ *   <li>{@link com.archimatetool.model.impl.DiagramModelBendpoint#getY <em>Y</em>}</li>
  * </ul>
  *
  * @generated
  */
 public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelBendpoint {
     /**
-     * The default value of the '{@link #getStartX() <em>Start X</em>}' attribute.
+     * The default value of the '{@link #getX() <em>X</em>}' attribute.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getStartX()
+     * @see #getX()
      * @generated
      * @ordered
      */
-    protected static final int START_X_EDEFAULT = 0;
+    protected static final int X_EDEFAULT = 0;
 
     /**
-     * The cached value of the '{@link #getStartX() <em>Start X</em>}' attribute.
+     * The cached value of the '{@link #getX() <em>X</em>}' attribute.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getStartX()
+     * @see #getX()
      * @generated
      * @ordered
      */
-    protected int startX = START_X_EDEFAULT;
+    protected int x = X_EDEFAULT;
 
     /**
-     * The default value of the '{@link #getStartY() <em>Start Y</em>}' attribute.
+     * The default value of the '{@link #getY() <em>Y</em>}' attribute.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getStartY()
+     * @see #getY()
      * @generated
      * @ordered
      */
-    protected static final int START_Y_EDEFAULT = 0;
+    protected static final int Y_EDEFAULT = 0;
 
     /**
-     * The cached value of the '{@link #getStartY() <em>Start Y</em>}' attribute.
+     * The cached value of the '{@link #getY() <em>Y</em>}' attribute.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
-     * @see #getStartY()
+     * @see #getY()
      * @generated
      * @ordered
      */
-    protected int startY = START_Y_EDEFAULT;
-
-    /**
-     * The default value of the '{@link #getEndX() <em>End X</em>}' attribute.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @see #getEndX()
-     * @generated
-     * @ordered
-     */
-    protected static final int END_X_EDEFAULT = 0;
-
-    /**
-     * The cached value of the '{@link #getEndX() <em>End X</em>}' attribute.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @see #getEndX()
-     * @generated
-     * @ordered
-     */
-    protected int endX = END_X_EDEFAULT;
-
-    /**
-     * The default value of the '{@link #getEndY() <em>End Y</em>}' attribute.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @see #getEndY()
-     * @generated
-     * @ordered
-     */
-    protected static final int END_Y_EDEFAULT = 0;
-
-    /**
-     * The cached value of the '{@link #getEndY() <em>End Y</em>}' attribute.
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @see #getEndY()
-     * @generated
-     * @ordered
-     */
-    protected int endY = END_Y_EDEFAULT;
+    protected int y = Y_EDEFAULT;
 
     /**
      * <!-- begin-user-doc -->
@@ -137,8 +95,8 @@ public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelB
      * <!-- end-user-doc -->
      * @generated
      */
-    public int getStartX() {
-        return startX;
+    public int getX() {
+        return x;
     }
 
     /**
@@ -146,11 +104,11 @@ public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelB
      * <!-- end-user-doc -->
      * @generated
      */
-    public void setStartX(int newStartX) {
-        int oldStartX = startX;
-        startX = newStartX;
+    public void setX(int newX) {
+        int oldX = x;
+        x = newX;
         if (eNotificationRequired())
-            eNotify(new ENotificationImpl(this, Notification.SET, IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_X, oldStartX, startX));
+            eNotify(new ENotificationImpl(this, Notification.SET, IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__X, oldX, x));
     }
 
     /**
@@ -158,8 +116,8 @@ public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelB
      * <!-- end-user-doc -->
      * @generated
      */
-    public int getStartY() {
-        return startY;
+    public int getY() {
+        return y;
     }
 
     /**
@@ -167,53 +125,11 @@ public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelB
      * <!-- end-user-doc -->
      * @generated
      */
-    public void setStartY(int newStartY) {
-        int oldStartY = startY;
-        startY = newStartY;
+    public void setY(int newY) {
+        int oldY = y;
+        y = newY;
         if (eNotificationRequired())
-            eNotify(new ENotificationImpl(this, Notification.SET, IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_Y, oldStartY, startY));
-    }
-
-    /**
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    public int getEndX() {
-        return endX;
-    }
-
-    /**
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    public void setEndX(int newEndX) {
-        int oldEndX = endX;
-        endX = newEndX;
-        if (eNotificationRequired())
-            eNotify(new ENotificationImpl(this, Notification.SET, IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_X, oldEndX, endX));
-    }
-
-    /**
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    public int getEndY() {
-        return endY;
-    }
-
-    /**
-     * <!-- begin-user-doc -->
-     * <!-- end-user-doc -->
-     * @generated
-     */
-    public void setEndY(int newEndY) {
-        int oldEndY = endY;
-        endY = newEndY;
-        if (eNotificationRequired())
-            eNotify(new ENotificationImpl(this, Notification.SET, IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_Y, oldEndY, endY));
+            eNotify(new ENotificationImpl(this, Notification.SET, IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__Y, oldY, y));
     }
 
     /**
@@ -233,14 +149,10 @@ public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelB
     @Override
     public Object eGet(int featureID, boolean resolve, boolean coreType) {
         switch (featureID) {
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_X:
-                return getStartX();
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_Y:
-                return getStartY();
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_X:
-                return getEndX();
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_Y:
-                return getEndY();
+            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__X:
+                return getX();
+            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__Y:
+                return getY();
         }
         return super.eGet(featureID, resolve, coreType);
     }
@@ -253,17 +165,11 @@ public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelB
     @Override
     public void eSet(int featureID, Object newValue) {
         switch (featureID) {
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_X:
-                setStartX((Integer)newValue);
+            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__X:
+                setX((Integer)newValue);
                 return;
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_Y:
-                setStartY((Integer)newValue);
-                return;
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_X:
-                setEndX((Integer)newValue);
-                return;
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_Y:
-                setEndY((Integer)newValue);
+            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__Y:
+                setY((Integer)newValue);
                 return;
         }
         super.eSet(featureID, newValue);
@@ -277,17 +183,11 @@ public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelB
     @Override
     public void eUnset(int featureID) {
         switch (featureID) {
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_X:
-                setStartX(START_X_EDEFAULT);
+            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__X:
+                setX(X_EDEFAULT);
                 return;
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_Y:
-                setStartY(START_Y_EDEFAULT);
-                return;
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_X:
-                setEndX(END_X_EDEFAULT);
-                return;
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_Y:
-                setEndY(END_Y_EDEFAULT);
+            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__Y:
+                setY(Y_EDEFAULT);
                 return;
         }
         super.eUnset(featureID);
@@ -301,14 +201,10 @@ public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelB
     @Override
     public boolean eIsSet(int featureID) {
         switch (featureID) {
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_X:
-                return startX != START_X_EDEFAULT;
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__START_Y:
-                return startY != START_Y_EDEFAULT;
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_X:
-                return endX != END_X_EDEFAULT;
-            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__END_Y:
-                return endY != END_Y_EDEFAULT;
+            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__X:
+                return x != X_EDEFAULT;
+            case IArchimatePackage.DIAGRAM_MODEL_BENDPOINT__Y:
+                return y != Y_EDEFAULT;
         }
         return super.eIsSet(featureID);
     }
@@ -323,14 +219,10 @@ public class DiagramModelBendpoint extends EObjectImpl implements IDiagramModelB
         if (eIsProxy()) return super.toString();
 
         StringBuffer result = new StringBuffer(super.toString());
-        result.append(" (startX: "); //$NON-NLS-1$
-        result.append(startX);
-        result.append(", startY: "); //$NON-NLS-1$
-        result.append(startY);
-        result.append(", endX: "); //$NON-NLS-1$
-        result.append(endX);
-        result.append(", endY: "); //$NON-NLS-1$
-        result.append(endY);
+        result.append(" (x: "); //$NON-NLS-1$
+        result.append(x);
+        result.append(", y: "); //$NON-NLS-1$
+        result.append(y);
         result.append(')');
         return result.toString();
     }
