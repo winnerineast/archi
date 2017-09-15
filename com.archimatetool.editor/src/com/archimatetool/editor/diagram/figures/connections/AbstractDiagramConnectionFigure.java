@@ -7,15 +7,18 @@ package com.archimatetool.editor.diagram.figures.connections;
 
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.ConnectionLocator;
+import org.eclipse.draw2d.FigureUtilities;
 import org.eclipse.draw2d.Graphics;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.Locator;
 import org.eclipse.draw2d.PolygonDecoration;
+import org.eclipse.draw2d.geometry.Dimension;
 // line-curves patch by Jean-Baptiste Sarrodie (aka Jaiguru)
 // Use alternate PolylineConnection
 //import org.eclipse.draw2d.PolylineConnection;
 import org.eclipse.draw2d.geometry.Point;
+import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.gef.editparts.ZoomListener;
 import org.eclipse.gef.editparts.ZoomManager;
 import org.eclipse.swt.graphics.Color;
@@ -58,6 +61,51 @@ extends RoundedPolylineConnection implements IDiagramConnectionFigure {
     };
     
     protected ZoomManager zoomManager;
+    
+    // Displays multi-line text
+    // adjustBoundsToFit() taken from org.eclipse.zest.core.widgets.internal.GraphLabel
+    public static class AdjustableLabel extends Label {
+        int borderWidth = 0;
+        
+        public AdjustableLabel() {
+        }
+        
+        public AdjustableLabel(String s) {
+            super(s);
+        }
+
+        @Override
+        public void setText(String s) {
+            super.setText(s);
+            adjustBoundsToFit();
+        }
+        
+        @Override
+        public void setFont(Font f) {
+            super.setFont(f);
+            adjustBoundsToFit();
+        }
+        
+        protected void adjustBoundsToFit() {
+            String text = getText();
+            int safeBorderWidth = borderWidth > 0 ? borderWidth : 1;
+            if ((text != null)) {
+                Font font = getFont();
+                if (font != null) {
+                    Dimension minSize = FigureUtilities.getTextExtents(text, font);
+                    if (getIcon() != null) {
+                        org.eclipse.swt.graphics.Rectangle imageRect = getIcon().getBounds();
+                        int expandHeight = Math.max(imageRect.height - minSize.height, 0);
+                        minSize.expand(imageRect.width + 4, expandHeight);
+                    }
+                    minSize.expand(10 + (2 * safeBorderWidth), 4 + (2 * safeBorderWidth));
+                    setBounds(new Rectangle(getLocation(), minSize));
+                }
+            }
+        }
+
+
+    }
     
     /**
      * Set the Zoom Manager
@@ -134,7 +182,7 @@ extends RoundedPolylineConnection implements IDiagramConnectionFigure {
 
     public Label getConnectionLabel() {
         if(fConnectionLabel == null) {
-            fConnectionLabel = new Label(""); //$NON-NLS-1$
+            fConnectionLabel = new AdjustableLabel(""); //$NON-NLS-1$
             add(fConnectionLabel);
         }
         return fConnectionLabel;
