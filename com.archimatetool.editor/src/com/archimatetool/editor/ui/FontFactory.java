@@ -147,8 +147,9 @@ public final class FontFactory {
                 FontData[] fd = font.getFontData();
                 String fontName = fd[0].toString();
                 if(!windowsFontRegistry.hasValueFor(fontName)) {
-                    double factor = (double)96 / DPI;
-                    fd[0].height *= factor;
+                    float factor = (float)96 / DPI;
+                    int newHeight = (int)(fd[0].getHeight() * factor);
+                    fd[0].setHeight(newHeight);
                     windowsFontRegistry.put(fontName, fd);
                 }
                 font = windowsFontRegistry.get(fontName);
@@ -159,19 +160,18 @@ public final class FontFactory {
     }
     
     /**
-     * // TODO: San Fransisco font on Mac causes problems - see https://bugs.eclipse.org/bugs/show_bug.cgi?id=486734
-     * @param font The font to check
-     * @return Lucida Grande Font if on Mac and font is ".SF NS Text", otherwise the same font
+     * @param font
+     * @return The italic variant of the given font
      */
-    public static Font getMacAlternateFont(Font font) {
-        if(font != null && PlatformUtils.isMac()) {
-            FontData fd = font.getFontData()[0];
-            if(".SF NS Text".equals(fd.getName())) { //$NON-NLS-1$
-                fd.setName("Lucida Grande"); //$NON-NLS-1$
-                return get(fd.toString());
-            }
-        }
-        
-        return font;
+    public static Font getItalic(Font font) {
+        return FontRegistry.getItalic(font.getFontData()[0].toString());
+    }
+    
+    /**
+     * @param font
+     * @return The bold variant of the given font
+     */
+    public static Font getBold(Font font) {
+        return FontRegistry.getBold(font.getFontData()[0].toString());
     }
 }

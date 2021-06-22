@@ -12,15 +12,13 @@
 
     <h1 class="pagebreak">Diagram Preferences</h1>
     
-	<h2>General</h2>
+	<br/>
+    
+    <h2>View</h2>
     <p>
         <strong>Grid Size</strong>
         <br/>Sets the grid spacing used in diagram Views.
     </p>
-
-	<br/>
-    
-    <h2>View</h2>
     <p>
         <strong>Palette is open when opening Views</strong>
         <br/>If enabled the palette in a View will be open when the View is opened.
@@ -80,31 +78,63 @@
         <br/>When this option is set child objects maintain their relative position to the parent object when the parent object's top/left is resized. Resizing at the top or left will not create new space in the parent object.</p>
     
     <br/>
+
+    <h2>Other</h2>
+    <p>
+        <strong>Use older method for drawing images</strong>
+        <br/>When this option is set an older method for drawing scaled images is used in Canvas image figures. It is faster but image transparency is not preserved. By default this should be disabled but the option is included for backward compatibility.</p>
+
+    <p>
+        <strong>Use an offset when drawing outlines on hi-res displays</strong>
+        <br/>When this option is set figure outlines are drawn with a small offset to compensate for higher resolution displays. This is normally only needed on Windows devices with hi-res displays.</p>
+    <br/>
     
     <h2>Appearance</h2>
 	
 	<br/>
     
-    <h3>Figures</h3>
+    <h3>Global</h3>
+
+    <p>These are global settings for the application.</p>
+
     <p>
-        <strong>Show gradient on figures</strong>
-        <br/>If enabled diagram elements are drawn with a gradient. <strong>Note - gradients will not show when a diagram image is exported in SVG format.</strong>
+        <strong>Word wrap style</strong>
+        <br/>Set the default word wrap style for ArchiMate figures.<br/>
+        <br/><em>Hard</em> - wrapping will only occur at valid line breaks.
+        <br/><em>Soft</em> - wrapping will always occur at the end of the available space, breaking in the middle of a word.
+        <br/><em>Truncated</em> - wrapping will always occur at the end of available space, truncating a word if it doesn't fit.
+    </p>
+
+    <h3>Defaults for new ArchiMate figures</h3>
+
+    <p>These are the defaults to use when creating a <em>new</em> ArchiMate figure. You can change these settings individually thereafter.</p>
+
+    <p>
+        <strong>Width</strong>
+        <br/>Set the default width for new ArchiMate figures.
+    </p>
+
+    <p>
+        <strong>Height</strong>
+        <br/>Set the default height for new ArchiMate figures.
+    </p>
+
+    <p>
+        <strong>Text Alignment</strong>
+        <br/>Set the default text alignment for new ArchiMate figures.
+    </p>
+
+    <p>
+        <strong>Text Position</strong>
+        <br/>Set the default text position for new ArchiMate figures.
+    </p>
+
+    <p>
+        <strong>Default Gradient</strong>
+        <br/>Set the default gradient for new diagram elements. <strong>Note - gradients will not show when a diagram is exported in SVG image format.</strong>
     </p>
     
-    <p>
-        <strong>Default size for new ArchiMate figures</strong>
-        <br/>Set the default width and height for new ArchiMate figures.
-    </p>
-
-    <p>
-        <strong>Word wrap style for ArchiMate figures</strong>
-        <br/>Set the default word wrap style for ArchiMate figures.<br/>
-        <br/>Hard - wrapping will only occur at valid line breaks.
-        <br/>Soft - wrapping will always occur at the end of the available space, breaking in the middle of a word.
-        <br/>Truncated - wrapping will always occur at the end of available space, truncating a word if it doesn't fit.
-    </p>
-
-    <h3>Sketch</h3>
+    <h3>Sketch View</h3>
     <p>
         <strong>Default Background</strong>
         <br/>Set the default background for newly created Sketch Views.</p>

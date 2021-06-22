@@ -16,6 +16,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageDataProvider;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
@@ -42,8 +43,7 @@ public class ImageFactory {
      * @return The actual device zoom level.
      */
     public static int getDeviceZoom() {
-        // This is needed if we are running from the Command Line to init Display and thus ensure DPIUtil.setDeviceZoom(int) is called
-        // when com.archimatetool.editor.preferences.PreferenceInitializer calls this method
+        // Note - Not sure if we need this any more...but just in case
         Display.getDefault();
         
         String deviceZoom = System.getProperty("org.eclipse.swt.internal.deviceZoom"); //$NON-NLS-1$
@@ -52,7 +52,7 @@ public class ImageFactory {
 
     /**
      * @return The zoom level for creating images.
-     * Windows OS with scaling > 100 needs to export images at x2 size
+     * Windows OS with scaling > 100 and Mac Retina since Eclipse 4.12 needs to export images at x2 size
      * If Preferences are set to not use a scaled device zoom then return 100
      */
     public static int getImageDeviceZoom() {
@@ -66,10 +66,11 @@ public class ImageFactory {
     
     /**
      * @return The zoom level for creating objects such as cursors.
-     * On Windows and Linux we need to use device zoom, but not on Mac
+     * Windows and Linux Wayland uses device zoom
+     * Mac and Linux X11 uses 100
      */
     public static int getLogicalDeviceZoom() {
-        return PlatformUtils.isMac() ? 100 : getDeviceZoom();
+        return PlatformUtils.isWindows() || PlatformUtils.isLinuxWayland() ? getDeviceZoom() : 100;
     }
     
     /**
@@ -181,6 +182,23 @@ public class ImageFactory {
 
         return image;
     }
+    
+    /**
+     * @param image The image to scale
+     * @return an autoscaled image depending on current device zoom
+     */
+    public static Image getAutoScaledImage(Image image) {
+        final ImageData imageData = image.getImageData(getDeviceZoom());
+        image.dispose();
+        
+        return new Image(Display.getCurrent(), new ImageDataProvider() {
+            @SuppressWarnings("restriction")
+            @Override
+            public ImageData getImageData(int zoom) {
+                return org.eclipse.swt.internal.DPIUtil.autoScaleImageData(Display.getCurrent(), imageData, zoom, getDeviceZoom());
+            }
+        });
+    }
 
     /**
      * Return a composite image consisting of many images
@@ -245,25 +263,33 @@ public class ImageFactory {
      */
     public ImageDescriptor getImageDescriptorWithRGB(String imageName, RGB rgb) {
         String rgbName = imageName + ColorFactory.convertRGBToString(rgb);
-        ImageRegistry registry = fPlugin.getImageRegistry();
         
+        ImageRegistry registry = fPlugin.getImageRegistry();
         ImageDescriptor newImageDescriptor = registry.getDescriptor(rgbName);
         
-        // Create new ImageDescriptor
+        // Create a new ImageDescriptor that sets the pixel to RGB
         if(newImageDescriptor == null) {
-            ImageDescriptor originalImageDescriptor = IArchiImages.ImageFactory.getImageDescriptor(imageName);
-            ImageData imageData = originalImageDescriptor.getImageData(100); // This has to be 100 even on 2x displays
-            int pixel = imageData.palette.getPixel(rgb);
-            
-            for(int x = 0; x < imageData.width; x++) {
-                for(int y = 0; y < imageData.height; y++) {
-                    imageData.setPixel(x, y, pixel);
-                }
+            ImageDescriptor id = getImageDescriptor(imageName);
+            if(id != null) {
+                newImageDescriptor = new ImageDescriptor() {
+                    @Override
+                    public ImageData getImageData(int zoom) {
+                        ImageData imageData = getImageDescriptor(imageName).getImageData(zoom);
+                        if(imageData != null) {
+                            int pixel = imageData.palette.getPixel(rgb);
+                            for(int x = 0; x < imageData.width; x++) {
+                                for(int y = 0; y < imageData.height; y++) {
+                                    imageData.setPixel(x, y, pixel);
+                                }
+                            }
+                        }
+                        return imageData;
+                    }
+                };
+                
+                registry.put(rgbName, newImageDescriptor);
             }
-
-            newImageDescriptor = ImageDescriptor.createFromImageDataProvider(zoom -> imageData);
-            registry.put(rgbName, newImageDescriptor);
-        }
+         }
 
         return newImageDescriptor;
     }
@@ -298,7 +324,7 @@ public class ImageFactory {
         Image image;
         
         // If there is a transparency pixel set copy the source ImageData to preserve it
-        ImageData sourceImageData = source.getImageData(ImageFactory.getImageDeviceZoom());
+        ImageData sourceImageData = source.getImageData(getDeviceZoom());
         if(sourceImageData.transparentPixel != -1) {
             ImageData id = new ImageData(width, height, sourceImageData.depth, sourceImageData.palette);
             id.transparentPixel = sourceImageData.transparentPixel;
@@ -337,19 +363,30 @@ public class ImageFactory {
             maxSize = 10;
         }
         
+        Rectangle newSize = getScaledImageSize(source, maxSize);
+        return getScaledImage(source, newSize.width, newSize.height);
+    }
+    
+    /**
+     * Calculate a new relative image size so that wither the width or height will be no bigger than maxSize
+     * @param source the Image source
+     * @param maxSize the maximum width or size. 
+     * @return The new scaled size
+     */
+    public static Rectangle getScaledImageSize(Image source, int maxSize) {
         Rectangle srcBounds = source.getBounds();
-        int width = srcBounds.width;
-        int height = srcBounds.height;
+        float width = srcBounds.width;
+        float height = srcBounds.height;
 
         if(height > maxSize) {
-            width *= ((float)maxSize / height);
+            width *= (maxSize / height);
             height = maxSize;
         }
         if(width > maxSize) {
-            height *= ((float)maxSize / width);
+            height *= (maxSize / width);
             width = maxSize;
         }
         
-        return getScaledImage(source, width, height);
+        return new Rectangle(0, 0, (int)width, (int)height);
     }
 }

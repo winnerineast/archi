@@ -1,30 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <!-- extension
-         point="org.eclipse.e4.ui.css.swt.theme">
+    <extension
+          point="org.eclipse.e4.ui.css.swt.theme">
       <theme
-            basestylesheeturi="themes/archi/css/archi.css"
-            id="com.archimatetool.editor.theme"
-            label="Archi">
+            basestylesheeturi="themes/archi/css/basic.css"
+            id="com.archimatetool.editor.theme.basic"
+            label="Basic">
       </theme>
 		
         <stylesheet
-            uri="themes/archi/css/archi.css">
+            uri="themes/archi/css/basic.css">
             <osgiresourcelocator
                 uri="platform:/plugin/com.archimatetool.editor.themes/themes/archi/images/">
             </osgiresourcelocator>
             <themeid
-                refid="com.archimatetool.editor.theme">
+                refid="com.archimatetool.editor.theme.basic">
             </themeid>
         </stylesheet>
-   </extension -->
+    </extension>
    
 	<extension
-       id="org.eclipse.e4.Themes"
        point="org.eclipse.e4.ui.css.swt.theme">
 		<theme
-			basestylesheeturi="themes/eclipse/css/e4_classic_winxp.css"
+			basestylesheeturi="themes/eclipse/css/e4_classic.css"
 			id="org.eclipse.e4.ui.css.theme.e4_classic"
 			label="Classic">
 		</theme>
@@ -44,23 +43,8 @@
             basestylesheeturi="themes/eclipse/css/e4_default_win.css"
             id="org.eclipse.e4.ui.css.theme.e4_default"
             label="Light"
-            os="win32"
-            os_version="6.0,6.1,6.2,6.3,10.0">
+            os="win32">
         </theme>
-		<theme
-        	basestylesheeturi="themes/eclipse/css/e4_default_winxp_blu.css"
-        	id="org.eclipse.e4.ui.css.theme.e4_default"
-        	label="Windows XP Blue"
-        	os="win32"
-        	os_version="5.1">
-		</theme>
-		<theme
-			basestylesheeturi="themes/eclipse/css/e4_classic_win7.css"
-			id="org.eclipse.e4.ui.css.theme.e4_classic"
-			label="Windows Classic"
-			os="win32"
-			os_version="6.0,6.1,6.2,6.3">
-		</theme>
         <theme
             basestylesheeturi="themes/eclipse/css/e4-dark_win.css"
             id="org.eclipse.e4.ui.css.theme.e4_dark"
@@ -68,7 +52,7 @@
             os="win32">
         </theme>
         <theme
-            basestylesheeturi="themes/eclipse/css/e4-dark.css"
+            basestylesheeturi="themes/eclipse/css/e4-dark_linux.css"
             id="org.eclipse.e4.ui.css.theme.e4_dark"
             label="Dark"
             os="linux">
@@ -84,8 +68,12 @@
             basestylesheeturi="themes/eclipse/css/e4-dark_mac.css"
             id="org.eclipse.e4.ui.css.theme.e4_dark"
             label="Dark"
-            os="macosx"
-            os_version="10.14,10.15">
+            os="macosx">
+        </theme>
+        <theme
+            basestylesheeturi="themes/eclipse/css/e4_system.css"
+            id="org.eclipse.e4.ui.css.theme.e4_system"
+            label="System">
         </theme>
 	</extension>
    

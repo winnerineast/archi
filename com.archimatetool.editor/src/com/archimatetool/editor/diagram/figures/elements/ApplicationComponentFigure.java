@@ -14,11 +14,8 @@ import org.eclipse.swt.graphics.Path;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractTextControlContainerFigure;
-import com.archimatetool.editor.diagram.figures.FigureUtils;
 import com.archimatetool.editor.diagram.figures.IFigureDelegate;
 import com.archimatetool.editor.diagram.figures.RectangleFigureDelegate;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 
@@ -51,6 +48,12 @@ public class ApplicationComponentFigure extends AbstractTextControlContainerFigu
         
         Rectangle bounds = getBounds().getCopy();
         
+        bounds.width--;
+        bounds.height--;
+        
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
+        
         if(!isEnabled()) {
             setDisabledState(graphics);
         }
@@ -60,17 +63,11 @@ public class ApplicationComponentFigure extends AbstractTextControlContainerFigu
         // Main Fill
         graphics.setBackgroundColor(getFillColor());
         
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        Pattern gradient = applyGradientPattern(graphics, bounds);
 
         graphics.fillRectangle(bounds.x + INDENT, bounds.y, bounds.width - INDENT, bounds.height);
         
-        if(gradient != null) {
-            gradient.dispose();
-        }
+        disposeGradientPattern(graphics, gradient);
         
         graphics.setAlpha(getLineAlpha());
         
@@ -81,30 +78,31 @@ public class ApplicationComponentFigure extends AbstractTextControlContainerFigu
         points.addPoint(pt1);
         Point pt2 = new Point(pt1.x, bounds.y);
         points.addPoint(pt2);
-        Point pt3 = new Point(bounds.x + bounds.width - 1, bounds.y);
+        Point pt3 = new Point(bounds.x + bounds.width, bounds.y);
         points.addPoint(pt3);
-        Point pt4 = new Point(pt3.x, bounds.y + bounds.height - 1);
+        Point pt4 = new Point(pt3.x, bounds.y + bounds.height);
         points.addPoint(pt4);
         Point pt5 = new Point(pt1.x, pt4.y);
         points.addPoint(pt5);
-        Point pt6 = new Point(pt1.x, bounds.y + 42);
+        Point pt6 = new Point(pt1.x, bounds.y + 43);
         points.addPoint(pt6);
         graphics.drawPolyline(points);
-        graphics.drawLine(bounds.x + INDENT, bounds.y + 22, bounds.x + INDENT, bounds.y + 30);
+        
+        graphics.drawLine(bounds.x + INDENT, bounds.y + 23, bounds.x + INDENT, bounds.y + 30);
         
         graphics.setAlpha(getAlpha());
         
         // Nubs Fill
         graphics.setBackgroundColor(ColorFactory.getDarkerColor(getFillColor()));
-        graphics.fillRectangle(bounds.x, bounds.y + 10, INDENT * 2 + 1, 13);
-        graphics.fillRectangle(bounds.x, bounds.y + 30, INDENT * 2 + 1, 13);
+        graphics.fillRectangle(bounds.x, bounds.y + 10, INDENT * 2, 13);
+        graphics.fillRectangle(bounds.x, bounds.y + 30, INDENT * 2, 13);
         
         graphics.setAlpha(getLineAlpha());
         
         // Nubs Outline
         graphics.setForegroundColor(getLineColor());
-        graphics.drawRectangle(bounds.x, bounds.y + 10, INDENT * 2, 12);
-        graphics.drawRectangle(bounds.x, bounds.y + 30, INDENT * 2, 12);
+        graphics.drawRectangle(bounds.x, bounds.y + 10, INDENT * 2, 13);
+        graphics.drawRectangle(bounds.x, bounds.y + 30, INDENT * 2, 13);
         
         graphics.popState();
     }

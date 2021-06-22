@@ -13,15 +13,20 @@ import org.eclipse.draw2d.Graphics;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
-import org.eclipse.swt.SWT;
+import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Pattern;
 
+import com.archimatetool.editor.ArchiPlugin;
+import com.archimatetool.editor.diagram.figures.FigureUtils.Direction;
+import com.archimatetool.editor.diagram.util.ExtendedSWTGraphics;
 import com.archimatetool.editor.preferences.IPreferenceConstants;
 import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.FontFactory;
+import com.archimatetool.editor.ui.ImageFactory;
 import com.archimatetool.editor.ui.factory.IGraphicalObjectUIProvider;
 import com.archimatetool.editor.ui.factory.ObjectUIFactory;
 import com.archimatetool.editor.utils.PlatformUtils;
@@ -39,6 +44,9 @@ import com.archimatetool.model.IDiagramModelObject;
  */
 public abstract class AbstractDiagramModelObjectFigure extends Figure
 implements IDiagramModelObjectFigure {
+    
+    // Use line width offset handling
+    boolean useLineOffset = ArchiPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.USE_FIGURE_LINE_OFFSET);
     
     private IDiagramModelObject fDiagramModelObject;
     
@@ -88,12 +96,45 @@ implements IDiagramModelObjectFigure {
     }
     
     /**
+     * Set the line width and compensate the figure bounds width and height for this line width and translate the graphics instance
+     * @param graphics The graphics instance
+     * @param lineWidth The line width
+     * @param bounds The bounds of the object
+     */
+    protected void setLineWidth(Graphics graphics, int lineWidth, Rectangle bounds) {
+        graphics.setLineWidth(lineWidth);
+        
+        // If we are exporting to image or printing this will be ExtendedSWTGraphics
+        // Otherwise it will be SWTGraphics
+        final double scale = graphics instanceof ExtendedSWTGraphics ? ((ExtendedSWTGraphics)graphics).getScale() : FigureUtils.getFigureScale(this);
+        
+        // If line width is 1 and scale is 100% and don't use offset then do nothing
+        if(lineWidth == 1 && scale == 1.0 && !useLineOffset) {
+            return;
+        }
+    
+        // Width and height reduced by line width to compensate for x,y offset
+        bounds.width -= lineWidth;
+        bounds.height -= lineWidth;
+        
+        // x,y offset is half of line width
+        float offset = (float)lineWidth / 2;
+        
+        // If this is a non hi-res device and scale == 100% round up to integer to stop anti-aliasing
+        if(ImageFactory.getDeviceZoom() == 100 && scale == 1.0) {
+            offset = (float)Math.ceil(offset);
+        }
+        
+        graphics.translate(offset, offset);
+    }
+    
+    /**
      * Set the drawing state when disabled
      * @param graphics
      */
     protected void setDisabledState(Graphics graphics) {
-        graphics.setAlpha(100);
-        graphics.setLineStyle(SWT.LINE_DOT);
+        //graphics.setLineStyle(SWT.LINE_DASH);
+        graphics.setLineDash(new int[] { 4, 3 });
     }
 
     /**
@@ -186,13 +227,44 @@ implements IDiagramModelObjectFigure {
     }
     
     protected int getAlpha() {
-        return fDiagramModelObject.getAlpha();
+        return isEnabled() ? fDiagramModelObject.getAlpha() : Math.min(100, fDiagramModelObject.getAlpha());
     }
 
     protected int getLineAlpha() {
-        return fDiagramModelObject.getLineAlpha();
+        return isEnabled() ? fDiagramModelObject.getLineAlpha() : 100;
+    }
+    
+    protected int getGradient() {
+        return fDiagramModelObject.getGradient();
     }
 
+    /**
+     * Apply a gradient pattern to the given Graphics instance and bounds using the current fill color, alpha and gradient setting
+     * @return the Pattern if a gradient should be applied or null if not
+     */
+    protected Pattern applyGradientPattern(Graphics graphics, Rectangle bounds) {
+        Pattern gradient = null;
+        
+        if(getGradient() != IDiagramModelObject.GRADIENT_NONE) {
+            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha(), Direction.get(getGradient()));
+            graphics.setBackgroundPattern(gradient);
+        }
+        
+        return gradient;
+    }
+    
+    /**
+     * Dispose the given Pattern if not null
+     */
+    protected void disposeGradientPattern(Graphics graphics, Pattern gradient) {
+        if(gradient != null) {
+            // Must set this to null in case of calling graphics.pushState() / graphics.popState();
+            // Or any further drawing that might reference the Pattern
+            graphics.setBackgroundPattern(null);
+            gradient.dispose();
+        }
+    }
+    
     @Override
     public IFigure getToolTip() {
         if(!Preferences.doShowViewTooltips()) {

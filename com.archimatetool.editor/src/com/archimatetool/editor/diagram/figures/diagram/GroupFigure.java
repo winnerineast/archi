@@ -7,18 +7,16 @@ package com.archimatetool.editor.diagram.figures.diagram;
 
 import org.eclipse.draw2d.ChopboxAnchor;
 import org.eclipse.draw2d.ConnectionAnchor;
+import org.eclipse.draw2d.FigureUtilities;
 import org.eclipse.draw2d.Graphics;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
-import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Path;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractTextControlContainerFigure;
-import com.archimatetool.editor.diagram.figures.FigureUtils;
 import com.archimatetool.editor.diagram.figures.ToolTipFigure;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.model.IDiagramModelGroup;
 import com.archimatetool.model.IDiagramModelObject;
@@ -32,8 +30,11 @@ import com.archimatetool.model.ITextPosition;
  */
 public class GroupFigure extends AbstractTextControlContainerFigure {
     
-    protected static final int TOPBAR_HEIGHT = 18;
+    private static final int TOPBAR_HEIGHT = 18;
     private static final float INSET = 2f;
+    
+    private int tabHeight;
+    private int tabWidth;
     
     public GroupFigure(IDiagramModelObject diagramModelObject) {
         super(diagramModelObject, TEXT_FLOW_CONTROL);
@@ -50,63 +51,85 @@ public class GroupFigure extends AbstractTextControlContainerFigure {
         
         Rectangle bounds = getBounds().getCopy();
         
-        graphics.setAntialias(SWT.ON);
+        bounds.width--;
+        bounds.height--;
+        
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
         
         graphics.setAlpha(getAlpha());
-
-        graphics.setBackgroundColor(ColorFactory.getDarkerColor(getFillColor()));
-        
-        int[] topRectangle = null;
-        int[] mainRectangle = null;
         
         if(getDiagramModelObject().getBorderType() == IDiagramModelGroup.BORDER_TABBED) {
-            topRectangle = new int[] {
-                    bounds.x, bounds.y,
-                    (int)(bounds.x + (bounds.width / INSET) - 1), bounds.y,
-                    (int)(bounds.x + (bounds.width / INSET) - 1), bounds.y + TOPBAR_HEIGHT,
-                    bounds.x, bounds.y + TOPBAR_HEIGHT,
-            };
+            tabWidth = (int)(bounds.width / INSET);
+            tabHeight = TOPBAR_HEIGHT;
             
-            mainRectangle = new int[] {
-                    bounds.x, bounds.y + TOPBAR_HEIGHT,
-                    bounds.x + bounds.width - 1, bounds.y + TOPBAR_HEIGHT,
-                    bounds.x + bounds.width - 1, bounds.y + bounds.height - 1,
-                    bounds.x, bounds.y + bounds.height - 1
-            };
+            if(getDiagramModelObject().getTextPosition() == ITextPosition.TEXT_POSITION_TOP) {
+                int textWidth = FigureUtilities.getTextExtents(getText(), getFont()).width;
+                tabWidth = Math.min(Math.max(tabWidth, textWidth + 8), bounds.width);
+
+                // Tab height is calculated from font height
+                int textHeight = FigureUtilities.getFontMetrics(getFont()).getHeight();
+                
+                // Tab height is calculated from the text control height which includes all text
+                // int textHeight = getTextControl().getBounds().height;
+
+                tabHeight = Math.max(TOPBAR_HEIGHT, textHeight);
+            }
             
-            graphics.fillPolygon(topRectangle);
+            // Top Rectangle
+            graphics.setBackgroundColor(ColorFactory.getDarkerColor(getFillColor()));
+            
+            Path path1 = new Path(null);
+            path1.moveTo(bounds.x, bounds.y);
+            path1.lineTo(bounds.x + tabWidth, bounds.y);
+            path1.lineTo(bounds.x + tabWidth, bounds.y + tabHeight);
+            path1.lineTo(bounds.x, bounds.y + tabHeight);
+            path1.lineTo(bounds.x, bounds.y);
+            graphics.fillPath(path1);
+            path1.dispose();
+            
+            // Main rectangle
+            graphics.setBackgroundColor(getFillColor());
+            Pattern gradient = applyGradientPattern(graphics, bounds);
+            
+            Path path2 = new Path(null);
+            path2.moveTo(bounds.x, bounds.y + tabHeight);
+            path2.lineTo(bounds.x + bounds.width, bounds.y + tabHeight);
+            path2.lineTo(bounds.x + bounds.width, bounds.y + bounds.height);
+            path2.lineTo(bounds.x, bounds.y + bounds.height);
+            graphics.fillPath(path2);
+            path2.dispose();
+            
+            disposeGradientPattern(graphics, gradient);
+            
+            // Line
+            graphics.setForegroundColor(getLineColor());
+            graphics.setAlpha(getLineAlpha());
+            
+            Path path = new Path(null);
+            path.moveTo(bounds.x, bounds.y + tabHeight);
+            path.lineTo(bounds.x, bounds.y);
+            path.lineTo(bounds.x + tabWidth, bounds.y);
+            path.lineTo(bounds.x + tabWidth, bounds.y + tabHeight);
+            graphics.drawPath(path);
+            path.dispose();
+            
+            graphics.drawRectangle(bounds.x, bounds.y + tabHeight, bounds.width, bounds.height - tabHeight);
         }
         else {
-            mainRectangle = new int[] {
-                    bounds.x, bounds.y,
-                    bounds.x + bounds.width - 1, bounds.y,
-                    bounds.x + bounds.width - 1, bounds.y + bounds.height - 1,
-                    bounds.x, bounds.y + bounds.height - 1
-            };
+            graphics.setBackgroundColor(getFillColor());
+            Pattern gradient = applyGradientPattern(graphics, bounds);
+            
+            graphics.fillRectangle(bounds);
+            
+            disposeGradientPattern(graphics, gradient);
+            
+            // Line
+            graphics.setForegroundColor(getLineColor());
+            graphics.setAlpha(getLineAlpha());
+            graphics.drawRectangle(bounds);
         }
 
-        graphics.setBackgroundColor(getFillColor());
-
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
-        
-        graphics.fillPolygon(mainRectangle);
-        
-        if(gradient != null) {
-            gradient.dispose();
-        }
-
-        // Line
-        graphics.setForegroundColor(getLineColor());
-        graphics.setAlpha(getLineAlpha());
-        if(topRectangle != null) {
-            graphics.drawPolygon(topRectangle);
-        }
-        graphics.drawPolygon(mainRectangle);
-        
         graphics.popState();
     }
     
@@ -116,7 +139,7 @@ public class GroupFigure extends AbstractTextControlContainerFigure {
         
         int textPosition = ((ITextPosition)getDiagramModelObject()).getTextPosition();
         if(textPosition == ITextPosition.TEXT_POSITION_TOP) {
-            bounds.y -= 3;
+            bounds.y -= Math.max(3, FigureUtilities.getFontMetrics(getFont()).getLeading());
         }
         
         return bounds;
@@ -138,7 +161,7 @@ public class GroupFigure extends AbstractTextControlContainerFigure {
     /**
      * Connection Anchor adjusts for Group shape
      */
-    class GroupFigureConnectionAnchor extends ChopboxAnchor {
+    private class GroupFigureConnectionAnchor extends ChopboxAnchor {
         public GroupFigureConnectionAnchor(IFigure owner) {
             super(owner);
         }
@@ -154,7 +177,7 @@ public class GroupFigure extends AbstractTextControlContainerFigure {
             Rectangle r = getBox().getCopy();
             getOwner().translateToAbsolute(r);
             
-            int shiftY = TOPBAR_HEIGHT - (pt.y - r.y) - 1;
+            int shiftY = tabHeight - (pt.y - r.y) - 1;
             
             if(pt.x > r.x + (r.width / INSET) && shiftY > 0) {
                 pt.y += shiftY;

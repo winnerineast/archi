@@ -11,19 +11,18 @@ import org.eclipse.draw2d.GridLayout;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.geometry.PointList;
 import org.eclipse.draw2d.geometry.Rectangle;
-import org.eclipse.draw2d.text.BlockFlow;
 import org.eclipse.draw2d.text.FlowPage;
 import org.eclipse.draw2d.text.ParagraphTextLayout;
 import org.eclipse.draw2d.text.TextFlow;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Path;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractDiagramModelObjectFigure;
 import com.archimatetool.editor.diagram.figures.FigureUtils;
+import com.archimatetool.editor.diagram.figures.ITextFigure;
 import com.archimatetool.editor.diagram.figures.TextPositionDelegate;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
-import com.archimatetool.editor.utils.StringUtils;
+import com.archimatetool.editor.ui.textrender.TextRenderer;
 import com.archimatetool.model.IDiagramModelNote;
 
 
@@ -32,7 +31,7 @@ import com.archimatetool.model.IDiagramModelNote;
  * 
  * @author Phillip Beauvoir
  */
-public class NoteFigure extends AbstractDiagramModelObjectFigure {
+public class NoteFigure extends AbstractDiagramModelObjectFigure implements ITextFigure {
     
     private TextFlow fTextFlow;
     
@@ -52,11 +51,9 @@ public class NoteFigure extends AbstractDiagramModelObjectFigure {
         setLayoutManager(new GridLayout());
 
         FlowPage page = new FlowPage();
-        BlockFlow block = new BlockFlow();
         fTextFlow = new TextFlow();
         fTextFlow.setLayoutManager(new ParagraphTextLayout(fTextFlow, ParagraphTextLayout.WORD_WRAP_SOFT));
-        block.add(fTextFlow);
-        page.add(block);
+        page.add(fTextFlow);
         setOpaque(true);
         
         GridData gd = new GridData(SWT.LEFT, SWT.TOP, true, true);
@@ -68,7 +65,7 @@ public class NoteFigure extends AbstractDiagramModelObjectFigure {
     @Override
     public void refreshVisuals() {
         // Text
-        setText(getDiagramModelObject().getContent());
+        setText();
         
         // Font
         setFont();
@@ -83,15 +80,17 @@ public class NoteFigure extends AbstractDiagramModelObjectFigure {
         setLineColor();
 
         // Alignment
-        ((BlockFlow)fTextFlow.getParent()).setHorizontalAligment(getDiagramModelObject().getTextAlignment());
+        ((FlowPage)fTextFlow.getParent()).setHorizontalAligment(getDiagramModelObject().getTextAlignment());
         fTextPositionDelegate.updateTextPosition();
         
         // Repaint
         repaint();
     }
     
-    public void setText(String text) {
-        fTextFlow.setText(StringUtils.safeString(text));
+    @Override
+    public void setText() {
+        String text = TextRenderer.getDefault().render(getDiagramModelObject(), getDiagramModelObject().getContent());
+        fTextFlow.setText(text);
     }
 
     @Override
@@ -105,38 +104,42 @@ public class NoteFigure extends AbstractDiagramModelObjectFigure {
         
         Rectangle bounds = getBounds().getCopy();
         
+        bounds.width--;
+        bounds.height--;
+        
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        if(getDiagramModelObject().getBorderType() != IDiagramModelNote.BORDER_NONE) {
+            setLineWidth(graphics, 1, bounds);
+        }
+        
         // Fill
         PointList points = new PointList();
         
         if(getDiagramModelObject().getBorderType() == IDiagramModelNote.BORDER_DOGEAR) {
             points.addPoint(bounds.x, bounds.y);
-            points.addPoint(bounds.getTopRight().x - 1, bounds.y);
-            points.addPoint(bounds.getTopRight().x - 1, bounds.getBottomRight().y - 13);
-            points.addPoint(bounds.getTopRight().x - 13, bounds.getBottomRight().y - 1);
-            points.addPoint(bounds.x, bounds.getBottomLeft().y - 1);
+            points.addPoint(bounds.getTopRight().x, bounds.y);
+            points.addPoint(bounds.getTopRight().x, bounds.getBottomRight().y - 13);
+            points.addPoint(bounds.getTopRight().x - 13, bounds.getBottomRight().y);
+            points.addPoint(bounds.x, bounds.getBottomLeft().y);
         }
         else {
             points.addPoint(bounds.x, bounds.y);
-            points.addPoint(bounds.getTopRight().x - 1, bounds.y);
-            points.addPoint(bounds.getTopRight().x - 1, bounds.getBottomRight().y - 1);
-            points.addPoint(bounds.x, bounds.getBottomLeft().y - 1);
+            points.addPoint(bounds.getTopRight().x, bounds.y);
+            points.addPoint(bounds.getTopRight().x, bounds.getBottomRight().y);
+            points.addPoint(bounds.x, bounds.getBottomLeft().y);
         }
         
         graphics.setAlpha(getAlpha());
         
         graphics.setBackgroundColor(getFillColor());
         
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        Pattern gradient = applyGradientPattern(graphics, bounds);
         
-        graphics.fillPolygon(points);
+        Path path = FigureUtils.createPathFromPoints(points);
+        graphics.fillPath(path);
+        path.dispose();
         
-        if(gradient != null) {
-            gradient.dispose();
-        }
+        disposeGradientPattern(graphics, gradient);
 
         if(getDiagramModelObject().getBorderType() != IDiagramModelNote.BORDER_NONE) {
             graphics.setAlpha(getLineAlpha());

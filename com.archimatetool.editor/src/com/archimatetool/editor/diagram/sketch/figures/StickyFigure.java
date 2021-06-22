@@ -11,9 +11,6 @@ import org.eclipse.draw2d.text.TextFlow;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractTextControlContainerFigure;
-import com.archimatetool.editor.diagram.figures.FigureUtils;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.editor.utils.StringUtils;
 import com.archimatetool.model.ISketchModelSticky;
 
@@ -30,7 +27,7 @@ public class StickyFigure extends AbstractTextControlContainerFigure {
     }
     
     @Override
-    protected void setText() {
+    public void setText() {
         String text = ((ISketchModelSticky)getDiagramModelObject()).getContent();
         ((TextFlow)getTextControl()).setText(StringUtils.safeString(text));
     }
@@ -42,25 +39,25 @@ public class StickyFigure extends AbstractTextControlContainerFigure {
         graphics.setAlpha(getAlpha());
         
         Rectangle bounds = getBounds().getCopy();
+        
+        bounds.width--;
+        bounds.height--;
+        
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
 
         graphics.setBackgroundColor(getFillColor());
+
+        Pattern gradient = applyGradientPattern(graphics, bounds);
         
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        graphics.fillRectangle(bounds.x, bounds.y, bounds.width, bounds.height);
         
-        graphics.fillRectangle(new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height));
-        
-        if(gradient != null) {
-            gradient.dispose();
-        }
+        disposeGradientPattern(graphics, gradient);
 
         // Outline
         graphics.setAlpha(getLineAlpha());
         graphics.setForegroundColor(getLineColor());
-        graphics.drawRectangle(new Rectangle(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1));
+        graphics.drawRectangle(bounds.x, bounds.y, bounds.width, bounds.height);
         
         graphics.popState();
     }

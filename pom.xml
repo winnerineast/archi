@@ -4,25 +4,26 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.archimatetool</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>archi</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
 
-    <name>Archi Tool Parent</name>
+    <name>Archi Tool</name>
 
     <properties>
-        <tycho-version>1.5.0</tycho-version>
-        <revision>4.6.0-SNAPSHOT</revision>
+        <tycho-version>2.3.0</tycho-version>
+        <revision>4.8.1-SNAPSHOT</revision>
     </properties>
     
     <repositories>
         <repository>
             <id>Eclipse repository</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/releases/2019-09/</url>
+            <url>https://download.eclipse.org/releases/2020-12</url>
         </repository>
     </repositories>
 
+    <!--Core modules -->
     <modules>
         <module>com.archimatetool.canvas</module>
         <module>com.archimatetool.commandline</module>
@@ -40,6 +41,8 @@
         <module>com.archimatetool.jasperreports.commandline</module>
         <module>com.archimatetool.jdom</module>
         <module>com.archimatetool.model</module>
+        <module>com.archimatetool.modelimporter</module>
+        <module>com.archimatetool.modelimporter.commandline</module>
         <module>com.archimatetool.reports</module>
         <module>com.archimatetool.reports.commandline</module>
         <module>com.archimatetool.templates</module>
@@ -47,14 +50,36 @@
         <module>com.archimatetool.zest</module>
         <module>org.opengroup.archimate.xmlexchange</module>
         <module>org.opengroup.archimate.xmlexchange.commandline</module>
-        <module>tests</module>
-        
-        <!-- For a full product build include the following module -->
-        <!-- <module>com.archimatetool.editor.product</module> -->
     </modules>
+
+    <profiles>
+        <!-- Profile for tests, active by default -->
+        <profile>
+            <id>tests</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>tests</module>
+            </modules>
+        </profile>
+        
+        <!-- Profile for creating a product build, not active by default -->
+        <!-- Use "mvn clean package -P product" to create products but not run tests -->
+        <profile>
+            <id>product</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <modules>
+                <module>com.archimatetool.editor.product</module>
+            </modules>
+        </profile>
+    </profiles>
 
     <build>
         <sourceDirectory>src</sourceDirectory>
+        
         <plugins>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
@@ -65,10 +90,23 @@
 
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-packaging-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <configuration>
+                    <!-- Replace the "-SNAPSHOT" version when generating jars -->
+                    <finalName>${project.artifactId}_${unqualifiedVersion}.${buildQualifier}</finalName>
+                    <!-- Don't add pom.xml and pom.properties files to META-INF folder  -->
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
                 <artifactId>target-platform-configuration</artifactId>
                 <version>${tycho-version}</version>
                 <configuration>
-                    <resolver>p2</resolver>
                     <environments>
                         <environment>
                             <os>win32</os>
@@ -101,34 +139,16 @@
                         <useProjectSettings>false</useProjectSettings>
                     </configuration>
                 </plugin>
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>tycho-source-plugin</artifactId>
-                    <version>${tycho-version}</version>
-                    <executions>
-                        <execution>
-                            <id>plugin-source</id>
-                            <goals>
-                                <goal>plugin-source</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
+                
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.0</version>
                     <configuration>
                         <encoding>ISO-8859-1</encoding>
                     </configuration>
                 </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <version>1.9</version>
-                </plugin>
             </plugins>
-
         </pluginManagement>
 
     </build>

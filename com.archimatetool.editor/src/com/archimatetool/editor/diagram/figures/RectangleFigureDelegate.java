@@ -9,8 +9,6 @@ import org.eclipse.draw2d.Graphics;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.graphics.Pattern;
 
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextPosition;
 
@@ -40,6 +38,12 @@ public class RectangleFigureDelegate extends AbstractFigureDelegate {
 
         Rectangle bounds = getBounds();
         
+        bounds.width--;
+        bounds.height--;
+
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
+
         graphics.setAlpha(getAlpha());
         
         if(!isEnabled()) {
@@ -49,21 +53,13 @@ public class RectangleFigureDelegate extends AbstractFigureDelegate {
         // Fill
         graphics.setBackgroundColor(getFillColor());
         
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        Pattern gradient = applyGradientPattern(graphics, bounds);
         
         graphics.fillRectangle(bounds);
         
-        if(gradient != null) {
-            gradient.dispose();
-        }
+        disposeGradientPattern(graphics, gradient);
         
         // Outline
-        bounds.width--;
-        bounds.height--;
         graphics.setAlpha(getLineAlpha());
         graphics.setForegroundColor(getLineColor());
         graphics.drawRectangle(bounds);

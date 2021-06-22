@@ -11,13 +11,8 @@ import org.eclipse.e4.core.contexts.IEclipseContext;
 import org.eclipse.e4.ui.css.swt.internal.theme.ThemeEngine;
 import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
 import org.eclipse.e4.ui.model.application.MApplication;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.FrameworkUtil;
-
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
-import com.archimatetool.editor.utils.PlatformUtils;
 
 
 
@@ -32,10 +27,23 @@ public final class ThemeUtils {
     public static final String E4_DEFAULT_THEME_ID = "org.eclipse.e4.ui.css.theme.e4_default";
     public static final String E4_DARK_THEME_ID = "org.eclipse.e4.ui.css.theme.e4_dark";
     
-    private static final String THEMEID_KEY = "themeid";
+    /**
+     * SWT CSS Tabs are square by default in Eclipse 4.16 and greater
+     * Stored in .metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.e4.ui.workbench.renderers.swt.prefs
+     */
+    public static final String USE_ROUND_TABS = "USE_ROUND_TABS";
+    
+    /**
+     * Whether the theme engine is in use or not
+     * Stored in .metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.e4.ui.workbench.renderers.swt.prefs
+     */
+    public static final String THEME_ENABLED = "themeEnabled";
     
     private static IThemeEngine engine;
-
+    
+    /**
+     * @return The Theme engine. This might be null if THEME_ENABLED is false
+     */
     public static IThemeEngine getThemeEngine() {
         if(engine == null) {
             MApplication application = PlatformUI.getWorkbench().getService(MApplication.class);
@@ -54,35 +62,19 @@ public final class ThemeUtils {
     }
     
     /**
-     *  1. If Windows/Linux ensure we have a default theme to stop Eclipse loading the dark theme by default
-     *  2. On Mac allow the user the auto-select choice
+     * @return Theme Preferences
      */
-    public static void setDefaultTheme() {
-        // If auto theme preference set on Mac
-        if(isAutoThemeSupported() && Preferences.STORE.getBoolean(IPreferenceConstants.THEME_AUTO)) {
-            // Dark
-            if(Display.isSystemDarkTheme()) {
-                getThemePreferences().put(THEMEID_KEY, E4_DARK_THEME_ID);
-            }
-            // Light
-            else {
-                getThemePreferences().put(THEMEID_KEY, E4_DEFAULT_THEME_ID);
-            }
-        }
-        
-        // Ensure a default theme
-        if(getThemePreferences().get(THEMEID_KEY, null) == null) {
-            getThemePreferences().put(THEMEID_KEY, E4_DEFAULT_THEME_ID);
-        }
-    }
-    
-    public static boolean isAutoThemeSupported() {
-        // Mac 10.14 and later
-        return PlatformUtils.isMac() && PlatformUtils.compareOSVersion("10.14") >= 0; //$NON-NLS-1$
-    }
-    
-    private static IEclipsePreferences getThemePreferences() {
+    public static IEclipsePreferences getThemePreferences() {
+        // This is at .metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.e4.ui.css.swt.theme.prefs
         return InstanceScope.INSTANCE.getNode(FrameworkUtil.getBundle(ThemeEngine.class).getSymbolicName());
+    }
+    
+    /**
+     * @return SWT Renderer Preferences
+     */
+    public static IEclipsePreferences getSwtRendererPreferences() {
+        // This is at .metadata/.plugins/org.eclipse.core.runtime/.settings/org.eclipse.e4.ui.workbench.renderers.swt.prefs
+        return InstanceScope.INSTANCE.getNode("org.eclipse.e4.ui.workbench.renderers.swt");
     }
     
     public static String getDefaultThemeName() {
@@ -95,6 +87,7 @@ public final class ThemeUtils {
      * @return true if we are using a dark theme
      */
     public static boolean isDarkTheme() {
-        return getThemeEngine().getActiveTheme() != null && getThemeEngine().getActiveTheme().getId().contains("dark");
+        return getThemeEngine() != null && 
+                getThemeEngine().getActiveTheme() != null && getThemeEngine().getActiveTheme().getId().contains("dark");
     }
 }

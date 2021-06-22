@@ -6,15 +6,12 @@
 package com.archimatetool.editor.diagram.figures.elements;
 
 import org.eclipse.draw2d.Graphics;
-import org.eclipse.draw2d.geometry.PointList;
 import org.eclipse.draw2d.geometry.Rectangle;
+import org.eclipse.swt.graphics.Path;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractFigureDelegate;
-import com.archimatetool.editor.diagram.figures.FigureUtils;
 import com.archimatetool.editor.diagram.figures.IDiagramModelObjectFigure;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.model.ITextPosition;
 
 
@@ -43,47 +40,45 @@ public class ProcessFigureDelegate extends AbstractFigureDelegate {
         
         graphics.setBackgroundColor(getFillColor());
         
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, getBounds(), getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        Rectangle bounds = getBounds();
         
-        PointList points = getPointList();
-        graphics.fillPolygon(points);
+        bounds.width--;
+        bounds.height--;
         
-        if(gradient != null) {
-            gradient.dispose();
-        }
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        int lineWidth = 1;
+        setLineWidth(graphics, lineWidth, bounds);
+        
+        Pattern gradient = applyGradientPattern(graphics, bounds);
+
+        Path path = new Path(null);
+        
+        float x1 = bounds.x + (bounds.width * 0.7f);
+        float y1 = bounds.y + (bounds.height / 5);
+        float y2 = bounds.y + bounds.height - (bounds.height / 5);
+        
+        float lineOffset = (float)lineWidth / 2;
+
+        path.moveTo(bounds.x, y1);
+        path.lineTo(x1, y1);
+        path.lineTo(x1, bounds.y);
+        path.lineTo(bounds.x + bounds.width, bounds.y + (bounds.height / 2));
+        path.lineTo(x1, bounds.y + bounds.height);
+        path.lineTo(x1, y2);
+        path.lineTo(bounds.x, y2);
+        path.lineTo(bounds.x, y1 - lineOffset);
+        graphics.fillPath(path);
+        
+        disposeGradientPattern(graphics, gradient);
 
         // Line
         graphics.setForegroundColor(getLineColor());
         graphics.setAlpha(getLineAlpha());
-        for(int i = 0; i < points.size() - 1; i++) {
-            graphics.drawLine(points.getPoint(i), points.getPoint(i + 1));
-        }
+        graphics.drawPath(path);
+        
+        path.dispose();
         
         graphics.popState();
-    }
-    
-    private PointList getPointList() {
-        Rectangle bounds = getBounds();
-        
-        bounds.width -= 1;
-        bounds.height -= 1;
-
-        PointList points = new PointList();
-        
-        points.addPoint(bounds.x, bounds.y + (bounds.height / 5));
-        points.addPoint(bounds.x + (int)(bounds.width * 0.7), points.getPoint(0).y);
-        points.addPoint(points.getPoint(1).x, bounds.y);
-        points.addPoint(bounds.x + bounds.width, bounds.y + (bounds.height / 2));
-        points.addPoint(points.getPoint(2).x, bounds.y + bounds.height);
-        points.addPoint(points.getPoint(2).x, bounds.y + bounds.height - (bounds.height / 5));
-        points.addPoint(points.getPoint(0).x, points.getPoint(5).y);
-        points.addPoint(points.getPoint(0).x, points.getPoint(0).y);
-        
-        return points;
     }
     
     @Override

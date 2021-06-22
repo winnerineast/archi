@@ -73,6 +73,8 @@
        </topic>
        <topic href="help/Text/view_fullscreen.html" label="Showing a View in Full Screen Mode">
        </topic>
+       <topic href="help/Text/view_export.html" label="Exporting the View as an Image">
+       </topic>
     </topic>
     <topic href="help/Text/viewpoints.html" label="Viewpoints">
     </topic>
@@ -111,6 +113,8 @@
     <topic href="help/Text/tools.html" label="Tools">
        <topic href="help/Text/generate_view.html" label="Generating a View from an Element">
        </topic>
+       <topic href="help/Text/properties_manager.html" label="Properties Manager">
+       </topic>
        <topic href="help/Text/validator.html" label="The Validator">
        </topic>
        <topic href="help/Text/preview_report.html" label="Preview HTML Report">
@@ -118,7 +122,9 @@
     </topic>
     <topic href="help/Text/open_save_print.html" label="Opening, Saving and Printing">
     </topic>
-    <topic href="help/Text/exporting.html" label="Importing and Exporting the Model and its Views">
+    <topic href="help/Text/csv.html" label="Exporting and Importing the Model in CSV Format">
+    </topic>
+    <topic href="help/Text/import-model.html" label="Importing Another Model into the Current Model">
     </topic>
     <topic href="help/Text/exchange-intro.html" label="The Open Group&apos;s ArchiMate Exchange Format">
        <topic href="help/Text/exchange-export.html" label="Exporting and Settings">
@@ -169,9 +175,9 @@
        </topic>
     </topic>
     <topic href="help/Text/preferences.html" label="Preferences">
-       <topic href="help/Text/prefs_canvas.html" label="Canvas Toolkit">
+       <topic href="help/Text/prefs_appearance.html" label="Appearance">
        </topic>
-       <topic href="help/Text/prefs_colours_fonts.html" label="Colours and Fonts">
+       <topic href="help/Text/prefs_canvas.html" label="Canvas Toolkit">
        </topic>
        <topic href="help/Text/prefs_connections.html" label="Connections">
        </topic>

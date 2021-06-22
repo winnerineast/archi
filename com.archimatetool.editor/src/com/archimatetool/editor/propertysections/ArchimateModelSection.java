@@ -74,6 +74,7 @@ public class ArchimateModelSection extends AbstractECorePropertySection {
 
         // Text
         StyledTextControl styledTextControl = createStyledTextControl(parent, SWT.NONE);
+        styledTextControl.setMessage(Messages.ArchimateModelSection_4);
         
         fTextPurpose = new PropertySectionTextControl(styledTextControl.getControl(), IArchimatePackage.Literals.ARCHIMATE_MODEL__PURPOSE) {
             @Override
@@ -89,7 +90,6 @@ public class ArchimateModelSection extends AbstractECorePropertySection {
                 }
             }
         };
-        fTextPurpose.setHint(Messages.ArchimateModelSection_4);
     }
 
     @Override
@@ -100,7 +100,7 @@ public class ArchimateModelSection extends AbstractECorePropertySection {
             // Model Name
             if(feature == IArchimatePackage.Literals.NAMEABLE__NAME) {
                 refreshNameField();
-                fPage.labelProviderChanged(null); // Update Main label
+                updatePropertiesLabel(); // Update Main label
             }
             // Model File
             else if(feature == IArchimatePackage.Literals.ARCHIMATE_MODEL__FILE) {

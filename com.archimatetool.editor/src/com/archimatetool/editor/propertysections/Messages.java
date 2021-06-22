@@ -139,6 +139,20 @@ public class Messages extends NLS {
 
     public static String FontSection_0;
 
+    public static String GradientSection_0;
+
+    public static String GradientSection_1;
+
+    public static String GradientSection_2;
+
+    public static String GradientSection_3;
+
+    public static String GradientSection_4;
+
+    public static String GradientSection_5;
+
+    public static String GradientSection_6;
+
     public static String GroupBorderTypeSection_0;
 
     public static String GroupBorderTypeSection_1;
@@ -165,6 +179,12 @@ public class Messages extends NLS {
 
     public static String JunctionTypeSection_3;
 
+    public static String LabelRendererSection_0;
+
+    public static String LabelRendererSection_1;
+
+    public static String LabelRendererSection_2;
+
     public static String LineColorSection_0;
 
     public static String LineColorSection_1;
@@ -184,6 +204,8 @@ public class Messages extends NLS {
     public static String OpacitySection_0;
 
     public static String OutlineOpacitySection_0;
+
+    public static String PropertiesLabelProvider_0;
 
     public static String SketchElementSection_0;
 

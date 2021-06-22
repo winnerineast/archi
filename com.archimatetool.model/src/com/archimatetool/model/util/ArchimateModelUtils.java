@@ -7,8 +7,10 @@ package com.archimatetool.model.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
@@ -18,6 +20,7 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.IJunction;
 
 
 
@@ -35,6 +38,16 @@ public class ArchimateModelUtils {
      * @return True if relationshipType is a valid source relationship for sourceComponent
      */
     public static final boolean isValidRelationshipStart(IArchimateConcept sourceConcept, EClass relationshipType) {
+        // If the source concept is a Junction check for valid relationships
+        if(sourceConcept instanceof IJunction) {
+            // Has to be the same type of relationship
+            for(IArchimateRelationship rel : getAllRelationshipsForConcept(sourceConcept)) {
+                if(!rel.eClass().equals(relationshipType)) {
+                    return false;
+                }
+            }
+        }
+        
         return RelationshipsMatrix.INSTANCE.isValidRelationshipStart(sourceConcept.eClass(), relationshipType);
     }
     
@@ -48,6 +61,38 @@ public class ArchimateModelUtils {
     public static final boolean isValidRelationship(IArchimateConcept sourceConcept, IArchimateConcept targetConcept, EClass relationshipType) {
         if(hasDirectRelationship(sourceConcept, targetConcept)) {
             return false;
+        }
+        
+        // If the source concept is a Junction check for valid relationships
+        if(sourceConcept instanceof IJunction) {
+            // This is an invalid indirect relationship between a concept connected to the Junction and the target concept
+            for(IArchimateRelationship rel : sourceConcept.getTargetRelationships()) {
+                if(!isValidRelationship(rel.getSource().eClass(), targetConcept.eClass(), relationshipType)) {
+                    return false;
+                }
+            }
+            // Has to be the same type of relationship
+            for(IArchimateRelationship rel : getAllRelationshipsForConcept(sourceConcept)) {
+                if(!rel.eClass().equals(relationshipType)) {
+                    return false;
+                }
+            }
+        }
+        
+        // If the target concept is a Junction check for valid relationships
+        if(targetConcept instanceof IJunction) {
+            // This is an invalid indirect relationship between a concept connected to the Junction and the source concept
+            for(IArchimateRelationship rel : targetConcept.getSourceRelationships()) {
+                if(!isValidRelationship(sourceConcept.eClass(), rel.getTarget().eClass(), relationshipType)) {
+                    return false;
+                }
+            }
+            // Has to be the same type of relationship
+            for(IArchimateRelationship rel : getAllRelationshipsForConcept(targetConcept)) {
+                if(!rel.eClass().equals(relationshipType)) {
+                    return false;
+                }
+            }
         }
         
         return isValidRelationship(sourceConcept.eClass(), targetConcept.eClass(), relationshipType);
@@ -71,7 +116,15 @@ public class ArchimateModelUtils {
      * @return An array of all valid relationship class types between sourceElement and targetElement
      */
     public static EClass[] getValidRelationships(IArchimateConcept sourceConcept, IArchimateConcept targetConcept) {
-        return getValidRelationships(sourceConcept.eClass(), targetConcept.eClass());
+        List<EClass> list = new ArrayList<EClass>();
+        
+        for(EClass eClass : getRelationsClasses()) {
+            if(isValidRelationship(sourceConcept, targetConcept, eClass)) {
+                list.add(eClass); 
+            }
+        }
+        
+        return list.toArray(new EClass[list.size()]);
     }
     
     /**
@@ -120,21 +173,10 @@ public class ArchimateModelUtils {
      * @return A list of all relationships that a concept has, both as target and as source
      */
     public static List<IArchimateRelationship> getAllRelationshipsForConcept(IArchimateConcept concept) {
-        List<IArchimateRelationship> list = new ArrayList<IArchimateRelationship>(); // make a copy
-        
-        for(IArchimateRelationship r : concept.getSourceRelationships()) {
-            if(!list.contains(r)) {
-                list.add(r);
-            }
-        }
-        
-        for(IArchimateRelationship r : concept.getTargetRelationships()) {
-            if(!list.contains(r)) {
-                list.add(r);
-            }
-        }
-        
-        return list;
+        Set<IArchimateRelationship> set = new HashSet<IArchimateRelationship>();
+        set.addAll(concept.getSourceRelationships());
+        set.addAll(concept.getTargetRelationships());
+        return new ArrayList<>(set);
     }
     
     /**

@@ -27,7 +27,6 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.DiagramModelUtils;
@@ -35,11 +34,10 @@ import com.archimatetool.editor.preferences.IPreferenceConstants;
 import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.ui.FontFactory;
+import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.ui.services.ViewManager;
-import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.editor.views.tree.ITreeModelView;
 import com.archimatetool.model.IArchimateConcept;
-import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
@@ -60,16 +58,16 @@ public class UsedInRelationshipsSection extends AbstractECorePropertySection {
     public static class Filter extends ObjectFilter {
         @Override
         public boolean isRequiredType(Object object) {
-            return object instanceof IArchimateElement;
+            return object instanceof IArchimateConcept;
         }
 
         @Override
         public Class<?> getAdaptableType() {
-            return IArchimateElement.class;
+            return IArchimateConcept.class;
         }
     }
 
-    private IArchimateElement fArchimateElement;
+    private IArchimateConcept fArchimateConcept;
     
     private TableViewer fTableViewer;
     
@@ -86,6 +84,9 @@ public class UsedInRelationshipsSection extends AbstractECorePropertySection {
         TableColumnLayout tableLayout = (TableColumnLayout)tableComp.getLayout();
         fTableViewer = new TableViewer(tableComp, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
         
+        // Font
+        UIUtils.setFontFromPreferences(fTableViewer.getTable(), IPreferenceConstants.ANALYSIS_TABLE_FONT, true);
+
         // Column
         TableViewerColumn column = new TableViewerColumn(fTableViewer, SWT.NONE, 0);
         tableLayout.setColumnData(column.getColumn(), new ColumnWeightData(100, false));
@@ -107,16 +108,16 @@ public class UsedInRelationshipsSection extends AbstractECorePropertySection {
             
             @Override
             public Object[] getElements(Object inputElement) {
-                return ArchimateModelUtils.getAllRelationshipsForConcept((IArchimateElement)inputElement).toArray();
+                return ArchimateModelUtils.getAllRelationshipsForConcept((IArchimateConcept)inputElement).toArray();
             }
         });
         
-        fTableViewer.setLabelProvider(new UsedInRelationshipsTableLabelProvider(fTableViewer.getTable()));
+        fTableViewer.setLabelProvider(new UsedInRelationshipsTableLabelProvider());
         
         fTableViewer.addDoubleClickListener(new IDoubleClickListener() {
             @Override
             public void doubleClick(DoubleClickEvent event) {
-                if(isAlive(fArchimateElement)) {
+                if(isAlive(fArchimateConcept)) {
                     Object o = ((IStructuredSelection)event.getSelection()).getFirstElement();
                     if(o instanceof IArchimateRelationship) {
                         IArchimateRelationship relation = (IArchimateRelationship)o;
@@ -132,7 +133,7 @@ public class UsedInRelationshipsSection extends AbstractECorePropertySection {
         fTableViewer.setComparator(new ViewerComparator());
         
         // DND
-        fTableViewer.addDragSupport(DND.DROP_COPY | DND.DROP_MOVE | DND.DROP_LINK, new Transfer[] { LocalSelectionTransfer.getTransfer() },
+        fTableViewer.addDragSupport(DND.DROP_COPY | DND.DROP_MOVE, new Transfer[] { LocalSelectionTransfer.getTransfer() },
                 new DragSourceListener() {
             @Override
             public void dragStart(DragSourceEvent event) {
@@ -158,8 +159,8 @@ public class UsedInRelationshipsSection extends AbstractECorePropertySection {
     
     @Override
     protected void update() {
-        fArchimateElement = (IArchimateElement)getFirstSelectedObject();
-        fTableViewer.setInput(fArchimateElement);
+        fArchimateConcept = (IArchimateConcept)getFirstSelectedObject();
+        fTableViewer.setInput(fArchimateConcept);
     }
     
     @Override
@@ -173,16 +174,7 @@ public class UsedInRelationshipsSection extends AbstractECorePropertySection {
     }
     
     private static class UsedInRelationshipsTableLabelProvider extends LabelProvider implements IFontProvider {
-        Font fontNormal = null;
         Font fontItalic = FontFactory.SystemFontItalic;
-        
-        UsedInRelationshipsTableLabelProvider(Table table) {
-            // Mac font issues
-            if(PlatformUtils.isMac()) {
-                fontNormal = FontFactory.getMacAlternateFont(table.getFont());
-                fontItalic = FontFactory.getMacAlternateFont(fontItalic);
-            }
-        }
         
         @Override
         public String getText(Object element) {
@@ -209,7 +201,7 @@ public class UsedInRelationshipsSection extends AbstractECorePropertySection {
                 }
             }
             
-            return fontNormal;
+            return null;
         }
     }
 }

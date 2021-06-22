@@ -13,14 +13,13 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.accessibility.AccessibleAdapter;
 import org.eclipse.swt.accessibility.AccessibleEvent;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -38,9 +37,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
-import com.archimatetool.editor.preferences.ColoursFontsPreferencePage;
+import com.archimatetool.editor.preferences.ColoursPreferencePage;
 import com.archimatetool.editor.ui.IArchiImages;
-import com.archimatetool.editor.utils.PlatformUtils;
+import com.archimatetool.editor.ui.ImageFactory;
 
 
 
@@ -64,8 +63,6 @@ public class ColorChooser extends EventManager {
      */
     public static final String PROP_COLORDEFAULT = "colorDefault"; //$NON-NLS-1$
 
-    private Image fImage;
-    
     private Composite fComposite;
     private Button fColorButton;
     private Button fMenuButton;
@@ -81,7 +78,6 @@ public class ColorChooser extends EventManager {
     
     private List<IAction> fExtraActionsList = new ArrayList<IAction>();
     
-
     public ColorChooser(Composite parent) {
         fComposite = new Composite(parent, SWT.NULL);
         fComposite.setBackgroundMode(SWT.INHERIT_FORCE);
@@ -93,12 +89,10 @@ public class ColorChooser extends EventManager {
         
         fColorButton = new Button(fComposite, SWT.FLAT);
         
-        GridData gd = new GridData();
-        gd.widthHint = 60;
-        fColorButton.setLayoutData(gd);
+        GridDataFactory.create(SWT.NONE).hint(60, SWT.DEFAULT).applyTo(fColorButton);
         
-        fImage = new Image(parent.getDisplay(), 40, 15);
-        fColorButton.setImage(fImage);
+        Image image = ImageFactory.getAutoScaledImage(new Image(Display.getCurrent(), 40, 15));
+        fColorButton.setImage(image);
         
         fColorButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -107,17 +101,12 @@ public class ColorChooser extends EventManager {
             }
         });
         
-        fColorButton.addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent event) {
-                if(fImage != null) {
-                    fImage.dispose();
-                    fImage = null;
-                }
-                if(fColor != null) {
-                    fColor.dispose();
-                    fColor = null;
-                }
+        fColorButton.addDisposeListener((e) -> {
+            if(fColorButton.getImage() != null) {
+                fColorButton.getImage().dispose();
+            }
+            if(fColor != null) {
+                fColor.dispose();
             }
         });
         
@@ -131,13 +120,6 @@ public class ColorChooser extends EventManager {
         fMenuButton = new Button(fComposite, SWT.FLAT);
         fMenuButton.setLayoutData(new GridData(GridData.FILL_VERTICAL));        
         fMenuButton.setImage(IArchiImages.ImageFactory.getImage(IArchiImages.MENU_ARROW));
-        
-        if(PlatformUtils.isMac()) {
-            gd.heightHint = 25;
-        }
-        else {
-            gd.heightHint = fMenuButton.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-        }
         
         fMenuButton.addSelectionListener(new SelectionAdapter() {
             @Override
@@ -218,10 +200,8 @@ public class ColorChooser extends EventManager {
                 @Override
                 public void run() {
                     PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(getControl().getShell(),
-                            ColoursFontsPreferencePage.ID, null, null);
+                            ColoursPreferencePage.ID, null, null);
                     if(dialog != null) {
-                        ColoursFontsPreferencePage page = (ColoursFontsPreferencePage)dialog.getSelectedPage();
-                        page.selectColoursTab();
                         dialog.open();
                     }
                 }
@@ -285,14 +265,14 @@ public class ColorChooser extends EventManager {
      */
     protected void updateColorImage() {
         Display display = fColorButton.getDisplay();
-        GC gc = new GC(fImage);
+        GC gc = new GC(fColorButton.getImage());
         
         if(fColor != null) {
             fColor.dispose();
         }
         fColor = new Color(display, fColorValue);
         
-        Rectangle r = fImage.getBounds();
+        Rectangle r = fColorButton.getImage().getBounds();
         
         if(fDoShowColorImage) {
             gc.setBackground(fColor);
@@ -310,9 +290,9 @@ public class ColorChooser extends EventManager {
 
         gc.dispose();
         
-        fColorButton.setImage(fImage); // have to explicitly set this on Mac
+        fColorButton.setImage(fColorButton.getImage()); // have to explicitly set this on Mac
     }
-
+    
     /**
      * Adds a property change listener to this <code>ColorSelector</code>.
      * Events are fired when the color in the control changes via the user

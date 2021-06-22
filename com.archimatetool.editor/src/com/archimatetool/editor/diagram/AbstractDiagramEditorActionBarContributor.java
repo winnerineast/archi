@@ -11,6 +11,7 @@ import org.eclipse.gef.ui.actions.ActionBarContributor;
 import org.eclipse.gef.ui.actions.AlignmentRetargetAction;
 import org.eclipse.gef.ui.actions.GEFActionConstants;
 import org.eclipse.gef.ui.actions.MatchHeightRetargetAction;
+import org.eclipse.gef.ui.actions.MatchSizeRetargetAction;
 import org.eclipse.gef.ui.actions.MatchWidthRetargetAction;
 import org.eclipse.gef.ui.actions.ZoomComboContributionItem;
 import org.eclipse.gef.ui.actions.ZoomInRetargetAction;
@@ -77,12 +78,17 @@ extends ActionBarContributor {
     
     @Override
     protected void buildActions() {
-        // Zoom in and out
+        // Zoom in
         ZoomInRetargetAction zoomInAction = new ZoomInRetargetAction();
+        zoomInAction.setText(Messages.AbstractDiagramEditorActionBarContributor_9); // Externalise these
+        zoomInAction.setToolTipText(Messages.AbstractDiagramEditorActionBarContributor_10);
         zoomInAction.setImageDescriptor(IArchiImages.ImageFactory.getImageDescriptor(IArchiImages.ZOOM_IN));
         addRetargetAction(zoomInAction);
         
+        // Zoom out
         ZoomOutRetargetAction zoomOutAction = new ZoomOutRetargetAction();
+        zoomOutAction.setText(Messages.AbstractDiagramEditorActionBarContributor_11); // Externalise these
+        zoomOutAction.setToolTipText(Messages.AbstractDiagramEditorActionBarContributor_12);
         zoomOutAction.setImageDescriptor(IArchiImages.ImageFactory.getImageDescriptor(IArchiImages.ZOOM_OUT));
         addRetargetAction(zoomOutAction);
         
@@ -90,6 +96,8 @@ extends ActionBarContributor {
         RetargetAction retargetAction = new RetargetAction(ZoomNormalAction.ID, ZoomNormalAction.TEXT);
         retargetAction.setActionDefinitionId(ZoomNormalAction.ID);
         retargetAction.setImageDescriptor(IArchiImages.ImageFactory.getImageDescriptor(IArchiImages.ZOOM_NORMAL));
+        retargetAction.setText(ZoomNormalAction.TEXT);
+        retargetAction.setToolTipText(ZoomNormalAction.TEXT);
         addRetargetAction(retargetAction);
         
         // Alignment Actions
@@ -100,9 +108,10 @@ extends ActionBarContributor {
         addRetargetAction(new AlignmentRetargetAction(PositionConstants.MIDDLE));
         addRetargetAction(new AlignmentRetargetAction(PositionConstants.BOTTOM));
         
-        // Match width/height
+        // Match width/height/size
         addRetargetAction(new MatchWidthRetargetAction());
         addRetargetAction(new MatchHeightRetargetAction());
+        addRetargetAction(new MatchSizeRetargetAction());
         
         addRetargetAction(new RetargetAction(SnapToGrid.PROPERTY_GRID_ENABLED, 
                 Messages.AbstractDiagramEditorActionBarContributor_0, IAction.AS_CHECK_BOX));
@@ -247,6 +256,7 @@ extends ActionBarContributor {
         
         alignmentMenu.add(getAction(GEFActionConstants.MATCH_WIDTH));
         alignmentMenu.add(getAction(GEFActionConstants.MATCH_HEIGHT));
+        alignmentMenu.add(getAction(GEFActionConstants.MATCH_SIZE));
         
         alignmentMenu.add(new Separator());
         alignmentMenu.add(getAction(DefaultEditPartSizeAction.ID));
@@ -362,6 +372,7 @@ extends ActionBarContributor {
         toolBarManager.add(new Separator());   
         toolBarManager.add(getAction(GEFActionConstants.MATCH_WIDTH));
         toolBarManager.add(getAction(GEFActionConstants.MATCH_HEIGHT));
+        toolBarManager.add(getAction(GEFActionConstants.MATCH_SIZE));
         toolBarManager.add(new Separator());
         toolBarManager.add(getAction(DefaultEditPartSizeAction.ID));
         toolBarManager.add(new GroupMarker(GROUP_TOOLBAR_END));

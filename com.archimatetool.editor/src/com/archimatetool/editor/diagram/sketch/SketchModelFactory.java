@@ -5,11 +5,15 @@
  */
 package com.archimatetool.editor.diagram.sketch;
 
+import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.ui.IEditorPart;
 
 import com.archimatetool.editor.diagram.ICreationFactory;
+import com.archimatetool.editor.preferences.IPreferenceConstants;
+import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.editor.ui.ArchiLabelProvider;
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.factory.IGraphicalObjectUIProvider;
@@ -56,7 +60,7 @@ public class SketchModelFactory implements ICreationFactory {
     
     @Override
     public Object getNewObject() {
-        Object object = IArchimateFactory.eINSTANCE.create(fTemplate);
+        EObject object = IArchimateFactory.eINSTANCE.create(fTemplate);
         
         // Actor
         if(object instanceof ISketchModelActor) {
@@ -68,6 +72,9 @@ public class SketchModelFactory implements ICreationFactory {
             ISketchModelSticky sticky = (ISketchModelSticky)object;
             sticky.setName(ArchiLabelProvider.INSTANCE.getDefaultName(fTemplate));
             
+            // Gradient
+            sticky.setGradient(Preferences.STORE.getInt(IPreferenceConstants.DEFAULT_GRADIENT));
+
             if(fParam instanceof Color) {
                 String color = ColorFactory.convertColorToString((Color)fParam);
                 sticky.setFillColor(color);
@@ -84,6 +91,8 @@ public class SketchModelFactory implements ICreationFactory {
             IDiagramModelGroup group = (IDiagramModelGroup)object;
             group.setName(ArchiLabelProvider.INSTANCE.getDefaultName(fTemplate));
             ColorFactory.setDefaultColors(group);
+            // Gradient
+            group.setGradient(Preferences.STORE.getInt(IPreferenceConstants.DEFAULT_GRADIENT));
         }
         
         // Connection
@@ -97,14 +106,20 @@ public class SketchModelFactory implements ICreationFactory {
             ColorFactory.setDefaultColors(connection);
         }
         
+        IGraphicalObjectUIProvider provider = (IGraphicalObjectUIProvider)ObjectUIFactory.INSTANCE.getProvider(object);
+
         if(object instanceof ITextAlignment) {
-            IGraphicalObjectUIProvider provider = (IGraphicalObjectUIProvider)ObjectUIFactory.INSTANCE.getProvider((IDiagramModelObject)object);
             ((IDiagramModelObject)object).setTextAlignment(provider.getDefaultTextAlignment());
         }
                 
         if(object instanceof ITextPosition) {
-            IGraphicalObjectUIProvider provider = (IGraphicalObjectUIProvider)ObjectUIFactory.INSTANCE.getProvider((ITextPosition)object);
             ((ITextPosition)object).setTextPosition(provider.getDefaultTextPosition());
+        }
+
+        // Add new bounds with a default user size
+        if(object instanceof IDiagramModelObject) {
+            Dimension size = provider.getUserDefaultSize();
+            ((IDiagramModelObject)object).setBounds(0, 0, size.width, size.height);
         }
         
         return object;

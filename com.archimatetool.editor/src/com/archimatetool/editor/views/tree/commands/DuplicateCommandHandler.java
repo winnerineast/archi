@@ -7,11 +7,10 @@ package com.archimatetool.editor.views.tree.commands;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.gef.commands.CompoundCommand;
@@ -24,13 +23,9 @@ import com.archimatetool.editor.ui.services.UIRequestManager;
 import com.archimatetool.editor.views.tree.TreeSelectionRequest;
 import com.archimatetool.model.IAdapter;
 import com.archimatetool.model.IArchimateElement;
-import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
-import com.archimatetool.model.IDiagramModelArchimateComponent;
-import com.archimatetool.model.IDiagramModelConnection;
-import com.archimatetool.model.IDiagramModelContainer;
-import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
+import com.archimatetool.model.util.UUIDFactory;
 
 
 
@@ -50,11 +45,11 @@ public class DuplicateCommandHandler {
     // Selected objects in Tree
     private Object[] fSelectedObjects;
     
-    // Newly added objects
+    // Newly added objects that will be selected in the Models Tree
     private List<Object> fNewObjects = new ArrayList<Object>();
 
-    // Elements to duplicate
-    private List<Object> fElementsToDuplicate = new ArrayList<Object>();
+    // If true will open duplicated diagrams when created
+    private boolean doOpenDiagrams = true;
     
     /**
      * @param selection
@@ -87,9 +82,6 @@ public class DuplicateCommandHandler {
      * Perform the duplicate command
      */
     public void duplicate() {
-        // Gather the elements to duplicate
-        getElementsToDuplicate();
-        
         // Create the Commands
         createCommands();
         
@@ -104,42 +96,27 @@ public class DuplicateCommandHandler {
         dispose();
     }
 
-    private void getElementsToDuplicate() {
+    private void createCommands() {
         for(Object object : fSelectedObjects) {
             if(canDuplicate(object)) {
-                addToList(object, fElementsToDuplicate);
+                CompoundCommand compoundCommand = getCompoundCommand((IAdapter)object);
+                if(compoundCommand == null) { // sanity check
+                    System.err.println("Could not get CompoundCommand in " + getClass()); //$NON-NLS-1$
+                    continue;
+                }
+                
+                if(object instanceof IDiagramModel) {
+                    Command cmd = new DuplicateDiagramModelCommand((IDiagramModel)object);
+                    compoundCommand.add(cmd);
+                }
+                else if(object instanceof IArchimateElement) {
+                    Command cmd = new DuplicateElementCommand((IArchimateElement)object);
+                    compoundCommand.add(cmd);
+                }
             }
         }
     }
     
-    private void createCommands() {
-        for(Object object : fElementsToDuplicate) {
-            CompoundCommand compoundCommand = getCompoundCommand((IAdapter)object);
-            if(compoundCommand == null) { // sanity check
-                System.err.println("Could not get CompoundCommand in " + getClass()); //$NON-NLS-1$
-                continue;
-            }
-            
-            if(object instanceof IDiagramModel) {
-                Command cmd = new DuplicateDiagramModelCommand((IDiagramModel)object);
-                compoundCommand.add(cmd);
-            }
-            else if(object instanceof IArchimateElement) {
-                Command cmd = new DuplicateElementCommand((IArchimateElement)object);
-                compoundCommand.add(cmd);
-            }
-        }
-    }
-    
-    /**
-     * Add object to list if not already in list
-     */
-    private void addToList(Object object, List<Object> list) {
-        if(object != null && !list.contains(object)) {
-            list.add(object);
-        }
-    }
-
     /**
      * Get, and if need be create, a CompoundCommand to which to add the object to be duplicated command
      */
@@ -163,7 +140,6 @@ public class DuplicateCommandHandler {
     
     private void dispose() {
         fSelectedObjects = null;
-        fElementsToDuplicate = null;
         fCommandMap = null;
         fNewObjects = null;
     }
@@ -178,12 +154,7 @@ public class DuplicateCommandHandler {
         private IDiagramModel fDiagramModelOriginal;
         private IDiagramModel fDiagramModelCopy;
         
-        /**
-         * Mapping of original objects to new copied objects
-         */
-        private Hashtable<IConnectable, IConnectable> fMapping;
-        
-        public DuplicateDiagramModelCommand(IDiagramModel dm) {
+        private DuplicateDiagramModelCommand(IDiagramModel dm) {
             fParent = (IFolder)dm.eContainer();
             fDiagramModelOriginal = dm;
             setLabel(Messages.DuplicateCommandHandler_2);
@@ -191,101 +162,36 @@ public class DuplicateCommandHandler {
         
         @Override
         public void execute() {
-            // We have to add the diagram model to the model first so that child objects can be allocated IDs.
-            // See com.archimatetool.model.util.IDAdapter
-            fDiagramModelCopy = (IDiagramModel)fDiagramModelOriginal.getCopy();
+            fDiagramModelCopy = EcoreUtil.copy(fDiagramModelOriginal);
+            UUIDFactory.generateNewIDs(fDiagramModelCopy);
             fDiagramModelCopy.setName(fDiagramModelOriginal.getName() + " " + Messages.DuplicateCommandHandler_3); //$NON-NLS-1$
+            
             fParent.getElements().add(fDiagramModelCopy);
             
             fNewObjects.add(fDiagramModelCopy);
             
-            fMapping = new Hashtable<IConnectable, IConnectable>();
-            
-            // Add child objects first
-            copyChildDiagramObjects(fDiagramModelOriginal, fDiagramModelCopy);
-            
-            // Then add connections
-            copyConnections();
-
             // Open Editor
-            EditorManager.openDiagramEditor(fDiagramModelCopy, false);
+            if(doOpenDiagrams) {
+                EditorManager.openDiagramEditor(fDiagramModelCopy, false);
+            }
         }
         
         @Override
         public void undo() {
             // Close the Editor FIRST!
             EditorManager.closeDiagramEditor(fDiagramModelCopy);
+            
             fParent.getElements().remove(fDiagramModelCopy);
         }
         
         @Override
         public void redo() {
             fParent.getElements().add(fDiagramModelCopy);
+            
             // Open Editor
-            EditorManager.openDiagramEditor(fDiagramModelCopy, false);
-        }
-        
-        /*
-         * This is done first and recursively so that the object's parent container can be determined and also to maintain z-order of objects
-         */
-        private void copyChildDiagramObjects(IDiagramModelContainer container, IDiagramModelContainer containerCopy) {
-            for(IDiagramModelObject dmo : container.getChildren()) {
-                IDiagramModelObject dmoCopy = (IDiagramModelObject)createCopy(dmo);
-                containerCopy.getChildren().add(dmoCopy);
-                
-                if(dmo instanceof IDiagramModelContainer) {
-                    copyChildDiagramObjects((IDiagramModelContainer)dmo, (IDiagramModelContainer)dmoCopy);
-                }
+            if(doOpenDiagrams) {
+                EditorManager.openDiagramEditor(fDiagramModelCopy, false);
             }
-        }
-        
-        /*
-         * Copy Connections
-         */
-        private void copyConnections() {
-            // Iterate through all connections in original
-            for(Iterator<EObject> iter = fDiagramModelOriginal.eAllContents(); iter.hasNext();) {
-                EObject eObject = iter.next();
-                
-                // Only Connect ;-)
-                if(eObject instanceof IDiagramModelConnection) {
-                    IDiagramModelConnection conn = (IDiagramModelConnection)eObject;
-                    
-                    IConnectable srcCopy = fMapping.get(conn.getSource());
-                    IConnectable tgtCopy = fMapping.get(conn.getTarget());
-                    
-                    // Source/Target copy does not exist yet - it will therefore be a connection that connects to another connection
-                    if(srcCopy == null) {
-                        srcCopy = createCopy(conn.getSource());
-                    }
-                    if(tgtCopy == null) {
-                        tgtCopy = createCopy(conn.getTarget());
-                    }
-                    
-                    // Make/get a copy and connect
-                    IDiagramModelConnection connCopy = (IDiagramModelConnection)createCopy(conn);
-                    connCopy.connect(srcCopy, tgtCopy);
-                }
-            }
-        }
-        
-        /*
-         * Create a copy and map it
-         */
-        private IConnectable createCopy(IConnectable object) {
-            if(fMapping.containsKey(object)) {
-                return fMapping.get(object);
-            }
-
-            IConnectable copy = (IConnectable)object.getCopy();
-            
-            if(object instanceof IDiagramModelArchimateComponent) {
-                ((IDiagramModelArchimateComponent)copy).setArchimateConcept(((IDiagramModelArchimateComponent)object).getArchimateConcept());
-            }
-            
-            fMapping.put(object, copy);
-            
-            return copy;
         }
         
         @Override
@@ -293,7 +199,6 @@ public class DuplicateCommandHandler {
             fParent = null;
             fDiagramModelOriginal = null;
             fDiagramModelCopy = null;
-            fMapping =  null;
         }
     }
     
@@ -304,7 +209,7 @@ public class DuplicateCommandHandler {
         private IFolder fParent;
         private IArchimateElement fElementCopy;
         
-        public DuplicateElementCommand(IArchimateElement element) {
+        private DuplicateElementCommand(IArchimateElement element) {
             setLabel(Messages.DuplicateCommandHandler_4);
 
             fParent = (IFolder)element.eContainer();

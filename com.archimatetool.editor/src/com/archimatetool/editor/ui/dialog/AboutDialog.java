@@ -18,6 +18,8 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
@@ -32,7 +34,6 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.about.InstallationDialog;
 
-import com.archimatetool.editor.Application;
 import com.archimatetool.editor.ArchiPlugin;
 import com.archimatetool.editor.actions.CheckForNewVersionAction;
 import com.archimatetool.editor.ui.IArchiImages;
@@ -144,10 +145,18 @@ public class AboutDialog extends TrayDialog {
             imageHeight = 300;
         }
         
-        final String version = Messages.AboutDialog_2 + System.getProperty(Application.APPLICATION_VERSIONID);
-        final String build = Messages.AboutDialog_3 + System.getProperty(Application.APPLICATION_BUILDID);
+        final String version = Messages.AboutDialog_2 + ArchiPlugin.INSTANCE.getVersion();
+        final String build = Messages.AboutDialog_3 + ArchiPlugin.INSTANCE.getBuild();
         final String copyright = ArchiPlugin.INSTANCE.getResourceString("%aboutCopyright"); //$NON-NLS-1$
         
+        FontData fd = imageControl.getFont().getFontData()[0];
+        fd.setHeight(fd.getHeight() - 1);
+        Font smallFont = new Font(imageControl.getDisplay(), fd);
+        
+        imageControl.addDisposeListener((e) -> {
+            smallFont.dispose();
+        });
+
         imageControl.addPaintListener(new PaintListener() {
             @Override
             public void paintControl(PaintEvent e) {
@@ -156,6 +165,9 @@ public class AboutDialog extends TrayDialog {
                 e.gc.drawImage(image, 0, 0);
                 e.gc.drawString(version, 19, 166, true);
                 e.gc.drawString(build, 19, 166 + fontHeight, true);
+
+                e.gc.setFont(smallFont);
+                fontHeight = e.gc.getFontMetrics().getHeight() + 2;
                 e.gc.drawString(copyright, 12, imageHeight - fontHeight - 5, true);
             }
         });

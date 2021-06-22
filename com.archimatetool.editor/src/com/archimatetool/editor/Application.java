@@ -15,6 +15,8 @@ import org.eclipse.osgi.service.datalocation.Location;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
+import com.archimatetool.editor.utils.PlatformUtils;
+
 
 
 
@@ -31,9 +33,6 @@ implements IApplication {
      */
     public static String ID = ArchiPlugin.PLUGIN_ID + ".app"; //$NON-NLS-1$
     
-    public static final String APPLICATION_VERSIONID = "com.archimatetool.editor.versionid"; //$NON-NLS-1$
-    public static final String APPLICATION_BUILDID = "com.archimatetool.editor.buildid"; //$NON-NLS-1$
-    
 	/**
 	 * Constructor
 	 */
@@ -42,29 +41,26 @@ implements IApplication {
 	
 	@Override
     public Object start(IApplicationContext context) throws Exception {
-	    // Clean Workbench if running as deployed product
-	    if(!Platform.inDevelopmentMode()) {
-	        WorkbenchCleaner.clean();
-	    }
-	    
-	    // Store the application version and build IDs in System Property
-	    String fullVersion = context.getBrandingBundle().getVersion().toString();
-	    String version = fullVersion.substring(0, 5);
-	    String build = fullVersion.substring(6);
-	    System.setProperty(APPLICATION_VERSIONID, version);
-	    System.setProperty(APPLICATION_BUILDID, build);
-	    
-	    /*
-	     * Platform specific startup if user launches app twice or from .archimate file on the desktop
-	     */
-	    IPlatformLauncher launcher = ArchiPlugin.INSTANCE.getPlatformLauncher();
-	    if(launcher != null) {
-	        launcher.startup();
-	        
-            /*
-             * If the application is already open (Windows), exit
-             */
-	        if(launcher.shouldApplicationExitEarly()) {
+        // If running on Linux lock the instance location so we can only launch Archi once
+        if(PlatformUtils.isLinux()) {
+            Location loc = Platform.getInstanceLocation();
+            
+            if(loc.isLocked()) {
+                return EXIT_OK;
+            }            
+            
+            if(loc.isSet()) { // Ensure it's set to avoid IOException
+                loc.lock(); // Lock it
+            }
+        }
+
+        // Platform specific launcher check
+        IPlatformLauncher launcher = ArchiPlugin.INSTANCE.getPlatformLauncher();
+        if(launcher != null) {
+            launcher.startup();
+            
+            // If the application is already open (Windows), exit
+            if(launcher.shouldApplicationExitEarly()) {
                 return EXIT_OK;
             }
 	    }
@@ -81,10 +77,19 @@ implements IApplication {
 	    OpenDocumentHandler.getInstance().hook(display);
 	    	    
 	    try {
+	        // Create and Run the Workbench
 	        int returnCode = PlatformUI.createAndRunWorkbench(display, new ArchiWorkbenchAdvisor());
-	        if(returnCode == PlatformUI.RETURN_RESTART) {
+
+	        // Was it a restart?
+	        boolean restart = returnCode == PlatformUI.RETURN_RESTART;
+	        
+	        // Clean Workbench on exit/restart
+	        WorkbenchCleaner.clean(restart);
+            
+	        if(restart) {
                 return EXIT_RESTART;
             }
+	        
 	        return EXIT_OK;
 	    }
 	    finally {

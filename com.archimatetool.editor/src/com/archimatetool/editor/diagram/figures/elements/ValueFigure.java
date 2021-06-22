@@ -12,9 +12,6 @@ import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractTextControlContainerFigure;
-import com.archimatetool.editor.diagram.figures.FigureUtils;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 
 
 
@@ -35,6 +32,11 @@ public class ValueFigure extends AbstractTextControlContainerFigure {
         graphics.pushState();
         
         Rectangle bounds = getBounds().getCopy();
+        bounds.width--;
+        bounds.height--;
+        
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
         
         graphics.setAlpha(getAlpha());
         
@@ -44,22 +46,16 @@ public class ValueFigure extends AbstractTextControlContainerFigure {
         
         graphics.setBackgroundColor(getFillColor());
         
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        Pattern gradient = applyGradientPattern(graphics, bounds);
 
-        graphics.fillOval(bounds.x, bounds.y, bounds.width, bounds.height);
+        graphics.fillOval(bounds);
         
-        if(gradient != null) {
-            gradient.dispose();
-        }
+        disposeGradientPattern(graphics, gradient);
 
         // Outline
         graphics.setAlpha(getLineAlpha());
         graphics.setForegroundColor(getLineColor());
-        graphics.drawOval(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1);
+        graphics.drawOval(bounds);
         
         graphics.popState();
     }

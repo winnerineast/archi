@@ -22,6 +22,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.views.properties.tabbed.AbstractPropertySection;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 
+import com.archimatetool.editor.preferences.IPreferenceConstants;
 import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.ui.components.GlobalActionDisablementHandler;
 import com.archimatetool.editor.ui.components.StyledTextControl;
@@ -94,11 +95,21 @@ public abstract class AbstractArchiPropertySection extends AbstractPropertySecti
     protected abstract void handleSelection(IStructuredSelection selection);
     
     /**
+     * Update/Refresh the main Properties label
+     */
+    protected void updatePropertiesLabel() {
+        fPage.labelProviderChanged(null);
+    }
+    
+    /**
      * @param parent
      * @return A Single line text Control
      */
     protected Text createSingleTextControl(Composite parent, int style) {
         Text textControl = getWidgetFactory().createText(parent, null, style | SWT.SINGLE);
+        
+        // Set font from preferences
+        UIUtils.setFontFromPreferences(textControl, IPreferenceConstants.SINGLE_LINE_TEXT_FONT, true);
         
         // Single text control so strip CRLFs
         UIUtils.conformSingleTextControl(textControl);
@@ -140,10 +151,18 @@ public abstract class AbstractArchiPropertySection extends AbstractPropertySecti
      * @return A Composite
      */
     protected Composite createComposite(Composite parent, int numColumns) {
+        return createComposite(parent, numColumns, false);
+    }
+    
+    /**
+     * @param parent
+     * @return A Composite
+     */
+    protected Composite createComposite(Composite parent, int numColumns, boolean makeColumnsEqualWidth) {
         Composite c = new Composite(parent, SWT.NULL);
         getWidgetFactory().adapt(c);
         
-        GridLayout layout = new GridLayout(numColumns, false);
+        GridLayout layout = new GridLayout(numColumns, makeColumnsEqualWidth);
         layout.marginHeight = 0;
         layout.marginWidth = 0;
         layout.verticalSpacing = V_SPACING;
@@ -152,7 +171,7 @@ public abstract class AbstractArchiPropertySection extends AbstractPropertySecti
         
         return c;
     }
-    
+
     /**
      * Create Label control. Style is set to SWT.WRAP
      * @param parent Parent composite
@@ -212,8 +231,7 @@ public abstract class AbstractArchiPropertySection extends AbstractPropertySecti
                     break;
                 
                 case SWT.Modify:
-                    if(propertiesViewGlobalActionHandler != null // We already got one...
-                                || event.widget.getData("hintSet") != null) { // Hint is being set so don't disable //$NON-NLS-1$
+                    if(propertiesViewGlobalActionHandler != null) { // We already got one...
                         return;
                     }
                     

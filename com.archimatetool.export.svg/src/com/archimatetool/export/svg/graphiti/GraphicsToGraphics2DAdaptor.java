@@ -59,8 +59,6 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.TextLayout;
 import org.eclipse.swt.widgets.Display;
 
-import com.archimatetool.editor.ui.ImageFactory;
-
 /**
  * Objects of this class can be used with draw2d to render to a Graphics2D
  * object.
@@ -197,7 +195,7 @@ public class GraphicsToGraphics2DAdaptor extends Graphics {
 
     private static final TextUtilities TEXT_UTILITIES = new TextUtilities();
 
-    private Rectangle relativeClipRegion;
+    protected Rectangle relativeClipRegion;
 
     private org.eclipse.swt.graphics.Rectangle viewBox;
     private Image image;
@@ -205,24 +203,24 @@ public class GraphicsToGraphics2DAdaptor extends Graphics {
     /**
      * x coordinate for graphics translation
      */
-    private int transX = 0;
+    protected int transX = 0;
     /**
      * y coordinate for graphics translation
      */
-    private int transY = 0;
+    protected int transY = 0;
     
     /**
      * current rotation angle 
      */
-    private float angle;
+    protected float angle;
     /**
      * The x coordinate of the rotation point
      */
-    private int rotateX;
+    protected int rotateX;
     /**
      * The y coordinate of the rotation point
      */
-    private int rotateY;
+    protected int rotateY;
 
     /**
      * Constructor
@@ -455,7 +453,7 @@ public class GraphicsToGraphics2DAdaptor extends Graphics {
             cloneGC(gc);
             layout.draw(gc, 0, 0, selectionStart, selectionEnd, selectionForeground, selectionBackground);
 
-            ImageData imageData = image.getImageData(ImageFactory.getImageDeviceZoom());
+            ImageData imageData = image.getImageData(); // This has to be 100% zoom
             imageData.transparentPixel = imageData.palette.getPixel(getBackgroundColor().getRGB());
 
             gc.dispose();
@@ -752,7 +750,7 @@ public class GraphicsToGraphics2DAdaptor extends Graphics {
             gc.setFont(getFont());
             gc.drawString(s, 0, 0);
             gc.dispose();
-            ImageData data = image.getImageData(ImageFactory.getImageDeviceZoom());
+            ImageData data = image.getImageData(); // This has to be 100% zoom
             image.dispose();
             RGB backgroundRGB = getBackgroundColor().getRGB();
             for (int i = 0; i < data.width; i++) {
@@ -1053,8 +1051,15 @@ public class GraphicsToGraphics2DAdaptor extends Graphics {
 
             int height = fontInfo[0].getHeight();
 
+            // Possible improvement for clipped text on Windows with scaling > 100
+            // https://github.com/archimatetool/archi/issues/714
+            // https://github.com/eclipse/gmf-runtime/blob/master/org.eclipse.gmf.runtime.draw2d.ui.render.awt/src/org/eclipse/gmf/runtime/draw2d/ui/render/awt/internal/graphics/GraphicsToGraphics2DAdaptor.java
+            // https://github.com/eclipse/gmf-runtime/commit/2d71b27e2d536c459ae115f92f2b9a5790454078#diff-6472b34090ce6cb354ce805448d72e932824883ce9dcecf658bc2515d4a2cae4
+            
             float fsize = height * (float) Display.getCurrent().getDPI().x / 72.0f;
-            height = Math.round(fsize);
+            // Round down instead of up. Font will be 1 point smaller.
+            //height = Math.round(fsize);
+            height = (int)fsize;
 
             int style = fontInfo[0].getStyle();
             boolean bItalic = (style & SWT.ITALIC) == SWT.ITALIC;
@@ -1450,7 +1455,7 @@ public class GraphicsToGraphics2DAdaptor extends Graphics {
      * 
      * @return the new AWT stroke
      */
-    private Stroke createStroke() {
+    protected Stroke createStroke() {
         float factor = currentState.lineAttributes.width > 0 ? currentState.lineAttributes.width : 3;
         float awt_dash[];
         int awt_cap;

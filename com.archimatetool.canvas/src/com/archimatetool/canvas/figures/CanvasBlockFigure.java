@@ -13,7 +13,6 @@ import org.eclipse.draw2d.GridLayout;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Locator;
 import org.eclipse.draw2d.geometry.Rectangle;
-import org.eclipse.draw2d.text.BlockFlow;
 import org.eclipse.draw2d.text.FlowPage;
 import org.eclipse.draw2d.text.ParagraphTextLayout;
 import org.eclipse.draw2d.text.TextFlow;
@@ -22,6 +21,7 @@ import org.eclipse.swt.graphics.Color;
 
 import com.archimatetool.canvas.model.ICanvasModelBlock;
 import com.archimatetool.editor.diagram.figures.AbstractContainerFigure;
+import com.archimatetool.editor.diagram.figures.ITextFigure;
 import com.archimatetool.editor.diagram.figures.TextPositionDelegate;
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.utils.StringUtils;
@@ -32,12 +32,14 @@ import com.archimatetool.editor.utils.StringUtils;
  * 
  * @author Phillip Beauvoir
  */
-public class CanvasBlockFigure extends AbstractContainerFigure {
+public class CanvasBlockFigure extends AbstractContainerFigure implements ITextFigure {
     
     private TextFlow fTextFlow;
     private TextPositionDelegate fTextPositionDelegate;
     private IconicDelegate fIconicDelegate;
     private Color fBorderColor;
+    
+    private static final int MAX_ICON_SIZE = 100;
     
     public CanvasBlockFigure(ICanvasModelBlock diagramModelBlock) {
         super(diagramModelBlock);
@@ -62,11 +64,9 @@ public class CanvasBlockFigure extends AbstractContainerFigure {
         };
         
         FlowPage flowPage = new FlowPage();
-        BlockFlow block = new BlockFlow();
         fTextFlow = new TextFlow();
         fTextFlow.setLayoutManager(new ParagraphTextLayout(fTextFlow, ParagraphTextLayout.WORD_WRAP_HARD));
-        block.add(fTextFlow);
-        flowPage.add(block);
+        flowPage.add(fTextFlow);
         
         Figure textWrapperFigure = new Figure();
         textWrapperFigure.setLayoutManager(new GridLayout());
@@ -77,7 +77,7 @@ public class CanvasBlockFigure extends AbstractContainerFigure {
         // This last
         add(getMainFigure(), mainLocator);
 
-        fIconicDelegate = new IconicDelegate(getDiagramModelObject());
+        fIconicDelegate = new IconicDelegate(getDiagramModelObject(), MAX_ICON_SIZE);
         fIconicDelegate.updateImage();
     }
     
@@ -99,7 +99,7 @@ public class CanvasBlockFigure extends AbstractContainerFigure {
         setBorderColor();
         
         // Alignment
-        ((BlockFlow)fTextFlow.getParent()).setHorizontalAligment(getDiagramModelObject().getTextAlignment());
+        ((FlowPage)fTextFlow.getParent()).setHorizontalAligment(getDiagramModelObject().getTextAlignment());
         
         // Text Position
         fTextPositionDelegate.updateTextPosition();
@@ -113,7 +113,8 @@ public class CanvasBlockFigure extends AbstractContainerFigure {
         repaint();
     }
     
-    private void setText() {
+    @Override
+    public void setText() {
         String content = getDiagramModelObject().getContent();
         getTextControl().setText(StringUtils.safeString(content));
     }
@@ -141,36 +142,42 @@ public class CanvasBlockFigure extends AbstractContainerFigure {
     
     @Override
     protected void drawFigure(Graphics graphics) {
+        drawFigure(graphics, getFillColor());
+    }
+
+    @Override
+    protected void drawTargetFeedback(Graphics graphics) {
+        drawFigure(graphics, ColorFactory.getDarkerColor(getFillColor()));
+    }
+    
+    private void drawFigure(Graphics graphics, Color background) {
+        graphics.pushState();
+        
         graphics.setAntialias(SWT.ON);
         
         graphics.setAlpha(getAlpha());
         
         Rectangle bounds = getBounds().getCopy();
         
-        graphics.setBackgroundColor(getFillColor());
+        bounds.width--;
+        bounds.height--;
+        
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
+        
+        graphics.setBackgroundColor(background);
         graphics.fillRectangle(bounds);
+        
+        // Icon
+        fIconicDelegate.drawIcon(graphics, bounds.getCopy());
         
         // Border
         if(getBorderColor() != null) {
             graphics.setAlpha(getLineAlpha());
             graphics.setForegroundColor(getBorderColor());
-            graphics.drawRectangle(new Rectangle(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1));
+            graphics.drawRectangle(bounds.x, bounds.y, bounds.width, bounds.height);
         }
         
-        fIconicDelegate.drawIcon(graphics, bounds);
-    }
-
-    @Override
-    protected void drawTargetFeedback(Graphics graphics) {
-        Rectangle boundsCopy = getBounds().getCopy();
-        boundsCopy.shrink(1, 1);
-        graphics.pushState();
-        graphics.setBackgroundColor(ColorFactory.getDarkerColor(getFillColor()));
-        graphics.fillRectangle(boundsCopy);
-        fIconicDelegate.drawIcon(graphics, getBounds().getCopy());
-        //graphics.setForegroundColor(ColorConstants.blue);
-        //graphics.setLineWidth(2);
-        //graphics.drawRectangle(boundsCopy);
         graphics.popState();
     }
     

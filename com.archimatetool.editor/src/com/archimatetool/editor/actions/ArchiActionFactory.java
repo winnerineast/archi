@@ -14,6 +14,8 @@ import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.actions.LabelRetargetAction;
 import org.eclipse.ui.actions.RetargetAction;
 
+import com.archimatetool.editor.ui.IArchiImages;
+
 
 
 
@@ -49,8 +51,8 @@ public final class ArchiActionFactory {
             if(window == null) {
                 throw new IllegalArgumentException();
             }
-            LabelRetargetAction action = new LabelRetargetAction(getId(), Messages.ArchimateEditorActionFactory_0);
-            action.setToolTipText(Messages.ArchimateEditorActionFactory_1);
+            LabelRetargetAction action = new LabelRetargetAction(getId(), Messages.ArchiActionFactory_0);
+            action.setToolTipText(Messages.ArchiActionFactory_1);
             window.getPartService().addPartListener(action);
             action.setActionDefinitionId(getCommandId());
             action.enableAccelerator(false);
@@ -73,8 +75,8 @@ public final class ArchiActionFactory {
             if (window == null) {
                 throw new IllegalArgumentException();
             }
-            LabelRetargetAction action = new LabelRetargetAction(getId(), Messages.ArchimateEditorActionFactory_2);
-            action.setToolTipText(Messages.ArchimateEditorActionFactory_3);
+            LabelRetargetAction action = new LabelRetargetAction(getId(), Messages.ArchiActionFactory_2);
+            action.setToolTipText(Messages.ArchiActionFactory_3);
             window.getPartService().addPartListener(action);
             action.setActionDefinitionId(getCommandId());
             return action;
@@ -92,7 +94,7 @@ public final class ArchiActionFactory {
             if (window == null) {
                 throw new IllegalArgumentException();
             }
-            RetargetAction action = new RetargetAction(getId(), Messages.ArchimateEditorActionFactory_4);
+            RetargetAction action = new RetargetAction(getId(), Messages.ArchiActionFactory_4);
             window.getPartService().addPartListener(action);
             // Don't do this unless registering a key binding in plugin.xml
             action.setActionDefinitionId(getCommandId());
@@ -111,7 +113,7 @@ public final class ArchiActionFactory {
             if (window == null) {
                 throw new IllegalArgumentException();
             }
-            RetargetAction action = new RetargetAction(getId(), Messages.ArchimateEditorActionFactory_5);
+            RetargetAction action = new RetargetAction(getId(), Messages.ArchiActionFactory_5);
             window.getPartService().addPartListener(action);
             // Don't do this unless registering a key binding in plugin.xml
             action.setActionDefinitionId(getCommandId());
@@ -164,7 +166,7 @@ public final class ArchiActionFactory {
             if (window == null) {
                 throw new IllegalArgumentException();
             }
-            LabelRetargetAction action = new LabelRetargetAction(getId(), Messages.ArchimateEditorActionFactory_6);
+            LabelRetargetAction action = new LabelRetargetAction(getId(), Messages.ArchiActionFactory_6);
             window.getPartService().addPartListener(action);
             // Don't do this unless registering a key binding in plugin.xml
             action.setActionDefinitionId(getCommandId());
@@ -183,10 +185,11 @@ public final class ArchiActionFactory {
             if (window == null) {
                 throw new IllegalArgumentException();
             }
-            RetargetAction action = new RetargetAction(getId(), Messages.ArchimateEditorActionFactory_7);
+            RetargetAction action = new RetargetAction(getId(), Messages.ArchiActionFactory_7);
             window.getPartService().addPartListener(action);
             // Don't do this unless registering a key binding in plugin.xml
             action.setActionDefinitionId(getCommandId());
+            action.setImageDescriptor(IArchiImages.ImageFactory.getImageDescriptor(IArchiImages.ICON_DIAGRAM));
             return action;
         }
     };
@@ -202,8 +205,8 @@ public final class ArchiActionFactory {
             if (window == null) {
                 throw new IllegalArgumentException();
             }
-            RetargetAction action = new RetargetAction(getId(), Messages.ArchiActionFactory_0);
-            action.setToolTipText(Messages.ArchiActionFactory_0);
+            RetargetAction action = new RetargetAction(getId(), Messages.ArchiActionFactory_8);
+            action.setToolTipText(Messages.ArchiActionFactory_8);
             window.getPartService().addPartListener(action);
             action.setActionDefinitionId(getCommandId());
             ISharedImages sharedImages = window.getWorkbench().getSharedImages();

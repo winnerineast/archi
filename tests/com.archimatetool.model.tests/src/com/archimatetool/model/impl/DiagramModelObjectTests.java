@@ -119,6 +119,13 @@ public abstract class DiagramModelObjectTests extends DiagramModelComponentTests
     }
     
     @Test
+    public void testGradient() {
+        assertEquals(IDiagramModelObject.GRADIENT_NONE, object.getGradient());
+        object.setGradient(2);
+        assertEquals(2, object.getGradient());
+    }
+    
+    @Test
     public void testGetDefaultTextAlignment() {
         assertEquals(ITextAlignment.TEXT_ALIGNMENT_CENTER, object.getTextAlignment());
     }

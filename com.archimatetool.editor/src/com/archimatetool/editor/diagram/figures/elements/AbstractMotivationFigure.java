@@ -8,12 +8,11 @@ package com.archimatetool.editor.diagram.figures.elements;
 import org.eclipse.draw2d.Graphics;
 import org.eclipse.draw2d.geometry.PointList;
 import org.eclipse.draw2d.geometry.Rectangle;
+import org.eclipse.swt.graphics.Path;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractTextControlContainerFigure;
 import com.archimatetool.editor.diagram.figures.FigureUtils;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 
 
 /**
@@ -38,23 +37,23 @@ public abstract class AbstractMotivationFigure extends AbstractTextControlContai
 
         graphics.pushState();
         
-        Rectangle bounds = getBounds();
+        Rectangle bounds = getBounds().getCopy();
         
+        bounds.width--;
+        bounds.height--;
+        
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
+       
         PointList points = new PointList();
- 
-        int x = bounds.x;
-        int y = bounds.y;
-        int width = bounds.width - 1;
-        int height = bounds.height - 1;
-        
-        points.addPoint(x + FLANGE, y);
-        points.addPoint(x + width - FLANGE, y);
-        points.addPoint(x + width, y + FLANGE);
-        points.addPoint(x + width, y + height - FLANGE);
-        points.addPoint(x + width - FLANGE, y + height);
-        points.addPoint(x + FLANGE, y + height);
-        points.addPoint(x, y + height - FLANGE);
-        points.addPoint(x, y + FLANGE);
+        points.addPoint(bounds.x + FLANGE, bounds.y);
+        points.addPoint(bounds.x + bounds.width - FLANGE, bounds.y);
+        points.addPoint(bounds.x + bounds.width, bounds.y + FLANGE);
+        points.addPoint(bounds.x + bounds.width, bounds.y + bounds.height - FLANGE);
+        points.addPoint(bounds.x + bounds.width - FLANGE, bounds.y + bounds.height);
+        points.addPoint(bounds.x + FLANGE, bounds.y + bounds.height);
+        points.addPoint(bounds.x, bounds.y + bounds.height - FLANGE);
+        points.addPoint(bounds.x, bounds.y + FLANGE);
         
         graphics.setAlpha(getAlpha());
         
@@ -65,17 +64,14 @@ public abstract class AbstractMotivationFigure extends AbstractTextControlContai
         // Fill
         graphics.setBackgroundColor(getFillColor());
         
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        Pattern gradient = applyGradientPattern(graphics, bounds);
         
-        graphics.fillPolygon(points);
+        //graphics.fillPolygon(points);
+        Path path = FigureUtils.createPathFromPoints(points);
+        graphics.fillPath(path);
+        path.dispose();
         
-        if(gradient != null) {
-            gradient.dispose();
-        }
+        disposeGradientPattern(graphics, gradient);
 
         // Line
         graphics.setAlpha(getLineAlpha());

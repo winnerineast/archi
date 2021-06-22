@@ -5,9 +5,6 @@
  */
 package com.archimatetool.editor.actions;
 
-import org.eclipse.core.commands.AbstractHandler;
-import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionRegistry;
@@ -24,10 +21,8 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarContributionItem;
 import org.eclipse.jface.action.ToolBarManager;
-import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.resource.ResourceLocator;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -36,7 +31,6 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 import org.eclipse.ui.actions.ContributionItemFactory;
 import org.eclipse.ui.application.ActionBarAdvisor;
 import org.eclipse.ui.application.IActionBarConfigurer;
-import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.handlers.IHandlerService;
 
 import com.archimatetool.editor.WorkbenchCleaner;
@@ -44,7 +38,6 @@ import com.archimatetool.editor.model.IModelExporter;
 import com.archimatetool.editor.model.IModelImporter;
 import com.archimatetool.editor.model.ISelectedModelImporter;
 import com.archimatetool.editor.ui.IArchiImages;
-import com.archimatetool.editor.ui.components.HeapStatusWidget.HeapStatusWidgetToolBarContributionItem;
 import com.archimatetool.editor.ui.dialog.RelationshipsMatrixDialog;
 import com.archimatetool.editor.ui.services.ViewManager;
 import com.archimatetool.editor.utils.PlatformUtils;
@@ -137,12 +130,12 @@ extends ActionBarAdvisor {
         
         // Close Editor
         fActionCloseEditor = ActionFactory.CLOSE.create(window);
-        fActionCloseEditor.setText(Messages.ArchimateEditorActionBarAdvisor_0);
+        fActionCloseEditor.setText(Messages.ArchiActionBarAdvisor_0);
         register(fActionCloseEditor);
 
         // Close All Editors
         fActionCloseAllEditors = ActionFactory.CLOSE_ALL.create(window);
-        fActionCloseAllEditors.setText(Messages.ArchimateEditorActionBarAdvisor_1);
+        fActionCloseAllEditors.setText(Messages.ArchiActionBarAdvisor_1);
         register(fActionCloseAllEditors);
         
         // Save
@@ -216,33 +209,10 @@ extends ActionBarAdvisor {
         // Register our own About Handler for our own custom dialog
         IHandlerService srv = window.getService(IHandlerService.class);
         srv.activateHandler(IWorkbenchCommandConstants.HELP_ABOUT, new AboutHandler());
-        
-        // TODO: Mac 10.15 bug on Eclipse. Remove this hack when Eclipse fixed
-        // See https://bugs.eclipse.org/bugs/show_bug.cgi?id=552514
-        if(PlatformUtils.isMac() && PlatformUtils.compareOSVersion("10.15") >= 0) { //$NON-NLS-1$
-            // Hook our own action handler for Preferences
-            srv.activateHandler(IWorkbenchCommandConstants.WINDOW_PREFERENCES, new AbstractHandler() {
-                @Override
-                public Object execute(ExecutionEvent event) throws ExecutionException {
-                    PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(null, null, null, null);
-                    
-                    // Force a resize on the Tree's parent to force a layout
-                    Display.getCurrent().asyncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            dialog.getTreeViewer().getControl().getParent().pack();
-                        }
-                    });
-                    
-                    dialog.open();
-                    return null;
-                }
-            });
-        }
-        
+                
         // Reset Perspective
         fActionResetPerspective = ActionFactory.RESET_PERSPECTIVE.create(window);
-        fActionResetPerspective.setText(Messages.ArchimateEditorActionBarAdvisor_2);
+        fActionResetPerspective.setText(Messages.ArchiActionBarAdvisor_2);
         register(fActionResetPerspective);
 
         // Toggle Coolbar
@@ -253,31 +223,31 @@ extends ActionBarAdvisor {
                 "com.archimatetool.editor.action.showTreeModelView", ITreeModelView.IMAGE_DESCRIPTOR); //$NON-NLS-1$
         register(fShowModelsView);
         
-        fShowPropertiesView = new ToggleViewAction(Messages.ArchimateEditorActionBarAdvisor_3, ViewManager.PROPERTIES_VIEW,
+        fShowPropertiesView = new ToggleViewAction(Messages.ArchiActionBarAdvisor_3, ViewManager.PROPERTIES_VIEW,
                 "com.archimatetool.editor.action.showPropertiesView", IArchiImages.ImageFactory.getImageDescriptor(IArchiImages.ECLIPSE_IMAGE_PROPERTIES_VIEW_ICON)); //$NON-NLS-1$
         register(fShowPropertiesView);
         
-        fShowOutlineView = new ToggleViewAction(Messages.ArchimateEditorActionBarAdvisor_4, ViewManager.OUTLINE_VIEW,
+        fShowOutlineView = new ToggleViewAction(Messages.ArchiActionBarAdvisor_4, ViewManager.OUTLINE_VIEW,
                 "com.archimatetool.editor.action.showOutlineView", IArchiImages.ImageFactory.getImageDescriptor(IArchiImages.ECLIPSE_IMAGE_OUTLINE_VIEW_ICON)); //$NON-NLS-1$
         register(fShowOutlineView);
         
-        fShowNavigatorView = new ToggleViewAction(Messages.ArchimateEditorActionBarAdvisor_5, INavigatorView.ID,
+        fShowNavigatorView = new ToggleViewAction(Messages.ArchiActionBarAdvisor_5, INavigatorView.ID,
                 "com.archimatetool.editor.action.showNavigatorView", INavigatorView.IMAGE_DESCRIPTOR); //$NON-NLS-1$
         register(fShowNavigatorView);
 
-        fShowPaletteView = new ToggleViewAction(Messages.ArchimateEditorActionBarAdvisor_6, PaletteView.ID,
+        fShowPaletteView = new ToggleViewAction(Messages.ArchiActionBarAdvisor_6, PaletteView.ID,
                                     "com.archimatetool.editor.action.showPaletteView", //$NON-NLS-1$
                                     ResourceLocator.imageDescriptorFromBundle("org.eclipse.gef", //$NON-NLS-1$
                                     "$nl$/icons/palette_view.gif").orElse(null)) { //$NON-NLS-1$
             @Override
             public String getToolTipText() {
-                return Messages.ArchimateEditorActionBarAdvisor_7;
+                return Messages.ArchiActionBarAdvisor_7;
             };
         };
         register(fShowPaletteView);
         
         // Show Relationships matrix dialog
-        fActionShowRelationsMatrix = new Action(Messages.ArchimateEditorActionBarAdvisor_17) {
+        fActionShowRelationsMatrix = new Action(Messages.ArchiActionBarAdvisor_17) {
             @Override
             public void run() {
                 RelationshipsMatrixDialog dialog = new RelationshipsMatrixDialog(window.getShell());
@@ -286,13 +256,13 @@ extends ActionBarAdvisor {
         };
         
         // Archi website
-        fDonateAction = new WebBrowserAction(Messages.ArchimateEditorActionBarAdvisor_18, "https://www.archimatetool.com/donate"); //$NON-NLS-1$
+        fDonateAction = new WebBrowserAction(Messages.ArchiActionBarAdvisor_18, "https://www.archimatetool.com/donate"); //$NON-NLS-1$
         
         // Check for new Version
         fActionCheckForNewVersion = new CheckForNewVersionAction();
         
         // Reset application
-        fActionResetApplication = new Action(Messages.ArchimateEditorActionBarAdvisor_20) {
+        fActionResetApplication = new Action(Messages.ArchiActionBarAdvisor_20) {
             @Override
             public void run() {
                 WorkbenchCleaner.askResetWorkbench();
@@ -329,11 +299,11 @@ extends ActionBarAdvisor {
     private MenuManager createFileMenu() {
         IWorkbenchWindow window = getActionBarConfigurer().getWindowConfigurer().getWindow();
         
-        MenuManager menu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_8, IWorkbenchActionConstants.M_FILE);
+        MenuManager menu = new MenuManager(Messages.ArchiActionBarAdvisor_8, IWorkbenchActionConstants.M_FILE);
         menu.add(new GroupMarker(IWorkbenchActionConstants.FILE_START));
 
         // New
-        MenuManager newMenu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_9, "new_menu"); //$NON-NLS-1$
+        MenuManager newMenu = new MenuManager(Messages.ArchiActionBarAdvisor_9, "new_menu"); //$NON-NLS-1$
         menu.add(newMenu);
         newMenu.add(fActionNewArchimateModel);
         newMenu.add(new GroupMarker("new_menu.ext")); //$NON-NLS-1$
@@ -362,19 +332,19 @@ extends ActionBarAdvisor {
         menu.add(fActionPrint);
         menu.add(new Separator());
         
-        MenuManager importMenu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_10, "import_menu"); //$NON-NLS-1$
+        MenuManager importMenu = new MenuManager(Messages.ArchiActionBarAdvisor_10, "import_menu"); //$NON-NLS-1$
         menu.add(importMenu);
         addImportModelExtensionMenuItems(window, importMenu);
         importMenu.add(new GroupMarker("import_ext")); //$NON-NLS-1$
         importMenu.add(new Separator());
         
-        MenuManager exportMenu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_11, "export_menu"); //$NON-NLS-1$
+        MenuManager exportMenu = new MenuManager(Messages.ArchiActionBarAdvisor_11, "export_menu"); //$NON-NLS-1$
         menu.add(exportMenu);
         addExportModelExtensionMenuItems(window, exportMenu);
         exportMenu.add(new GroupMarker("export_ext")); //$NON-NLS-1$
         exportMenu.add(new Separator());
         
-        MenuManager reportMenu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_12, "report_menu"); //$NON-NLS-1$
+        MenuManager reportMenu = new MenuManager(Messages.ArchiActionBarAdvisor_12, "report_menu"); //$NON-NLS-1$
         menu.add(reportMenu);
         reportMenu.add(new GroupMarker("report_ext")); //$NON-NLS-1$
         
@@ -400,7 +370,7 @@ extends ActionBarAdvisor {
     private MenuManager createEditMenu() {
         IWorkbenchWindow window = getActionBarConfigurer().getWindowConfigurer().getWindow();
         
-        MenuManager menu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_13, IWorkbenchActionConstants.M_EDIT);
+        MenuManager menu = new MenuManager(Messages.ArchiActionBarAdvisor_13, IWorkbenchActionConstants.M_EDIT);
         menu.add(new GroupMarker(IWorkbenchActionConstants.EDIT_START));
         
         menu.add(fActionUndo);
@@ -444,7 +414,7 @@ extends ActionBarAdvisor {
      * @return
      */
     private MenuManager createToolsMenu() {
-        MenuManager menu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_19, "tools"); //$NON-NLS-1$
+        MenuManager menu = new MenuManager(Messages.ArchiActionBarAdvisor_19, "tools"); //$NON-NLS-1$
         menu.add(new GroupMarker("tools_start")); //$NON-NLS-1$
         
         menu.add(fActionGenerateView);
@@ -460,7 +430,7 @@ extends ActionBarAdvisor {
     private MenuManager createWindowMenu() {
         IWorkbenchWindow window = getActionBarConfigurer().getWindowConfigurer().getWindow();
 
-        MenuManager menu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_14, IWorkbenchActionConstants.M_WINDOW);
+        MenuManager menu = new MenuManager(Messages.ArchiActionBarAdvisor_14, IWorkbenchActionConstants.M_WINDOW);
 
         //MenuManager perspectiveMenu = new MenuManager(Messages.LDAuthorActionBarAdvisor_10, "openPerspective"); //$NON-NLS-1$
         //IContributionItem perspectiveList = ContributionItemFactory.PERSPECTIVES_SHORTLIST.create(window);
@@ -488,24 +458,38 @@ extends ActionBarAdvisor {
 
         menu.add(new Separator("nav_start")); //$NON-NLS-1$
 
-        MenuManager navigationMenu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_15);
+        MenuManager navigationMenu = new MenuManager(Messages.ArchiActionBarAdvisor_15);
         menu.add(navigationMenu);
 
         IAction a = ActionFactory.NEXT_EDITOR.create(window);
+        a.setText(Messages.ArchiActionBarAdvisor_21);
+        a.setToolTipText(Messages.ArchiActionBarAdvisor_22);
         register(a);
         navigationMenu.add(a);
 
         a = ActionFactory.PREVIOUS_EDITOR.create(window);
+        a.setText(Messages.ArchiActionBarAdvisor_23);
+        a.setToolTipText(Messages.ArchiActionBarAdvisor_24);
         register(a);
         navigationMenu.add(a);
 
+        a = ActionFactory.SHOW_WORKBOOK_EDITORS.create(window);
+        a.setText(Messages.ArchiActionBarAdvisor_25);
+        a.setToolTipText(Messages.ArchiActionBarAdvisor_26);
+        register(a);
+        navigationMenu.add(a);
+        
         navigationMenu.add(new Separator());
 
         a = ActionFactory.NEXT_PART.create(window);
+        a.setText(Messages.ArchiActionBarAdvisor_27);
+        a.setToolTipText(Messages.ArchiActionBarAdvisor_28);
         register(a);
         navigationMenu.add(a);
 
         a = ActionFactory.PREVIOUS_PART.create(window);
+        a.setText(Messages.ArchiActionBarAdvisor_29);
+        a.setToolTipText(Messages.ArchiActionBarAdvisor_30);
         register(a);
         navigationMenu.add(a);
         
@@ -525,7 +509,7 @@ extends ActionBarAdvisor {
     private MenuManager createHelpMenu() {
         IWorkbenchWindow window = getActionBarConfigurer().getWindowConfigurer().getWindow();
         
-        MenuManager menu = new MenuManager(Messages.ArchimateEditorActionBarAdvisor_16, IWorkbenchActionConstants.M_HELP);
+        MenuManager menu = new MenuManager(Messages.ArchiActionBarAdvisor_16, IWorkbenchActionConstants.M_HELP);
         
         menu.add(new GroupMarker(IWorkbenchActionConstants.HELP_START));
         
@@ -604,20 +588,6 @@ extends ActionBarAdvisor {
         
         IToolBarManager toolBarTools = new ToolBarManager(SWT.FLAT);
         coolBarManager.add(new ToolBarContributionItem(toolBarTools, "toolbar_tools")); //$NON-NLS-1$
-
-        // If System Property to VM arguments is "-Dshowheap=true" then Show Heap Widget
-        if("true".equals(System.getProperty("showheap"))) { //$NON-NLS-1$ //$NON-NLS-2$
-            // BUG on Windows - the Contribution Item Height is not computed unless there is also an ActionContributionItem
-            if(PlatformUtils.isWindows()) {
-                toolBarTools.add(new Action(" ") { //$NON-NLS-1$
-                    @Override
-                    public boolean isEnabled() {
-                        return false;
-                    }
-                });
-            }
-            toolBarTools.add(new HeapStatusWidgetToolBarContributionItem());
-        }
     }
 
     /**

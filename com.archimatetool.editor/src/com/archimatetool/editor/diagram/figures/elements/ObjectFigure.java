@@ -10,11 +10,8 @@ import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractTextControlContainerFigure;
-import com.archimatetool.editor.diagram.figures.FigureUtils;
 import com.archimatetool.editor.diagram.figures.IDiagramModelObjectFigure;
 import com.archimatetool.editor.diagram.figures.RectangleFigureDelegate;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.model.ITextPosition;
 
 
@@ -40,6 +37,12 @@ public class ObjectFigure extends AbstractTextControlContainerFigure {
             
             Rectangle bounds = getBounds();
             
+            bounds.width--;
+            bounds.height--;
+            
+            // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+            setLineWidth(graphics, 1, bounds);
+
             graphics.setAlpha(getAlpha());
             
             if(!isEnabled()) {
@@ -49,24 +52,16 @@ public class ObjectFigure extends AbstractTextControlContainerFigure {
             // Main Fill
             graphics.setBackgroundColor(getFillColor());
             
-            Pattern gradient = null;
-            if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-                gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-                graphics.setBackgroundPattern(gradient);
-            }
+            Pattern gradient = applyGradientPattern(graphics, bounds);
             
             graphics.fillRectangle(bounds);
             
-            if(gradient != null) {
-                gradient.dispose();
-            }
+            disposeGradientPattern(graphics, gradient);
 
             // Outline
             graphics.setForegroundColor(getLineColor());
             graphics.setAlpha(getLineAlpha());
 
-            bounds.width--;
-            bounds.height--;
             graphics.drawLine(bounds.x, bounds.y + TOP_MARGIN, bounds.x + bounds.width, bounds.y + TOP_MARGIN);
             graphics.drawRectangle(bounds);
             

@@ -9,8 +9,8 @@ import org.eclipse.draw2d.PolylineDecoration;
 import org.eclipse.draw2d.RotatableDecoration;
 import org.eclipse.swt.SWT;
 
+import com.archimatetool.editor.diagram.figures.FigureUtils;
 import com.archimatetool.editor.utils.StringUtils;
-import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IInfluenceRelationship;
 
 
@@ -36,27 +36,27 @@ public class InfluenceConnectionFigure extends AbstractArchimateConnectionFigure
     protected void setFigureProperties() {
         setTargetDecoration(createFigureTargetDecoration()); 
         setLineStyle(SWT.LINE_CUSTOM); // We have to explitly set this otherwise dashes/dots don't show
-        setLineDash(getLineDashes(1.0));
+        setLineDash(getLineDashFloats());
     }
     
     @Override
-    protected void setConnectionText() {
-        IInfluenceRelationship rel = (IInfluenceRelationship)getModelConnection().getArchimateRelationship();
-        String text = getModelConnection().getName();
-        if(StringUtils.isSet(rel.getStrength())) {
-            text += " " + rel.getStrength(); //$NON-NLS-1$
-        }
+    public void setText() {
+        super.setText();
         
-        boolean displayName = getModelConnection().getFeatures().getBoolean(IDiagramModelConnection.FEATURE_NAME_VISIBLE, true);
-        getConnectionLabel().setText(displayName ? text : ""); //$NON-NLS-1$
+        // Show Strength after Name if we don't show it already by means of the text expression
+        if(getModelConnection().isNameVisible()) {
+            String text = getConnectionLabel().getText();
+            String strength = ((IInfluenceRelationship)getModelConnection().getArchimateRelationship()).getStrength();
+            if(StringUtils.isSet(strength) && !text.contains(strength)) {
+                text += " " + strength; //$NON-NLS-1$
+                getConnectionLabel().setText(text);
+            }
+        }
     }
     
     @Override
-    public void handleZoomChanged(double newZoomValue) {
-        setLineDash(getLineDashes(newZoomValue));
-    }
-    
-    private float[] getLineDashes(double zoomLevel) {
-        return new float[] { (float)(6 * zoomLevel), (float)(3 * zoomLevel) }; 
+    protected float[] getLineDashFloats() {
+        double scale = Math.min(FigureUtils.getFigureScale(this), 1.0); // only scale below 1.0
+        return new float[] { (float)(6 * scale), (float)(3 * scale) };
     }
 }

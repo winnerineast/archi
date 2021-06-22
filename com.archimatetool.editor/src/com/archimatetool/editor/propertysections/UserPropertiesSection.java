@@ -46,15 +46,12 @@ import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TableViewerEditor;
-import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerComparator;
@@ -66,6 +63,7 @@ import org.eclipse.swt.dnd.DragSourceListener;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.DropTargetListener;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -90,7 +88,9 @@ import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.commands.EObjectFeatureCommand;
 import com.archimatetool.editor.model.commands.EObjectNonNotifyingCompoundCommand;
+import com.archimatetool.editor.preferences.IPreferenceConstants;
 import com.archimatetool.editor.ui.IArchiImages;
+import com.archimatetool.editor.ui.UIUtils;
 import com.archimatetool.editor.ui.components.ExtendedTitleAreaDialog;
 import com.archimatetool.editor.ui.components.GlobalActionDisablementHandler;
 import com.archimatetool.editor.ui.components.StringComboBoxCellEditor;
@@ -108,7 +108,7 @@ import com.archimatetool.model.util.LightweightEContentAdapter;
 
 
 /**
- * User Properties Section for an Archimate Element, Archimate Model or Diagram Model
+ * User Properties Section
  * 
  * @author Phillip Beauvoir
  */
@@ -148,6 +148,8 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
 
     @Override
     protected void notifyChanged(Notification msg) {
+        super.notifyChanged(msg);
+        
         if(msg.getEventType() == EObjectNonNotifyingCompoundCommand.START) {
             ignoreMessages = true;
             return;
@@ -159,6 +161,10 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
 
         if(!ignoreMessages) {
             Object feature = msg.getFeature();
+            
+            if(feature == IArchimatePackage.Literals.LOCKABLE__LOCKED) {
+                updateLocked();
+            }
 
             if(feature == IArchimatePackage.Literals.PROPERTIES__PROPERTIES) {
                 fTableViewer.refresh();
@@ -179,6 +185,17 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
         
         // Update kludge
         ((UpdatingTableColumnLayout)fTableViewer.getTable().getParent().getLayout()).doRelayout();
+        
+        // Locked
+        updateLocked();
+    }
+    
+    private void updateLocked() {
+        boolean locked = isLocked(getFirstSelectedObject());
+        fTableViewer.getTable().setEnabled(!locked);
+        fActionNewProperty.setEnabled(!locked);
+        fActionRemoveProperty.setEnabled(!locked && !fTableViewer.getSelection().isEmpty());
+        fActionNewMultipleProperty.setEnabled(!locked);
     }
 
     @Override
@@ -212,6 +229,9 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
         // Table Viewer
         fTableViewer = new TableViewer(tableComp, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION);
 
+        // Font
+        UIUtils.setFontFromPreferences(fTableViewer.getTable(), IPreferenceConstants.PROPERTIES_TABLE_FONT, true);
+        
         // Edit cell on double-click and add Tab key traversal
         TableViewerEditor.create(fTableViewer, new ColumnViewerEditorActivationStrategy(fTableViewer) {
             @Override
@@ -290,6 +310,7 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
             @Override
             public void run() {
                 if(isAlive(fPropertiesElement)) {
+                    fTableViewer.applyEditorValue(); // complete any current editing
                     int index = -1;
                     IProperty selected = (IProperty)((IStructuredSelection)fTableViewer.getSelection()).getFirstElement();
                     if(selected != null) {
@@ -397,36 +418,42 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
         /*
          * Selection Listener
          */
-        fTableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-            @Override
-            public void selectionChanged(SelectionChangedEvent event) {
-                fActionRemoveProperty.setEnabled(!event.getSelection().isEmpty());
-            }
+        fTableViewer.addSelectionChangedListener((e) -> {
+            fActionRemoveProperty.setEnabled(!e.getSelection().isEmpty());
         });
 
         /*
          * Table Double-click
          */
-        fTableViewer.getTable().addListener(SWT.MouseDoubleClick, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                // Get Table item
-                Point pt = new Point(event.x, event.y);
-                TableItem item = fTableViewer.getTable().getItem(pt);
-                
-                // Double-click into empty table creates new Property
-                if(item == null) {
-                    fActionNewProperty.run();                    
-                }
-                // Double-clicked in column 0 with item
-                else if(item.getData() instanceof IProperty) {
-                    Rectangle rect = item.getBounds(0);
-                    if(rect.contains(pt)) {
-                        handleDoubleClick((IProperty)item.getData());
-                    }
+        fTableViewer.getTable().addListener(SWT.MouseDoubleClick, (e) -> {
+            // Get Table item
+            Point pt = new Point(e.x, e.y);
+            TableItem item = fTableViewer.getTable().getItem(pt);
+            
+            // Double-click into empty table creates new Property
+            if(item == null) {
+                fActionNewProperty.run();                    
+            }
+            // Double-clicked in column 0 with item
+            else if(item.getData() instanceof IProperty) {
+                Rectangle rect = item.getBounds(0);
+                if(rect.contains(pt)) {
+                    handleDoubleClick((IProperty)item.getData());
                 }
             }
         });
+        
+        /*
+         * Edit table row on key press
+         */
+        fTableViewer.getTable().addKeyListener(KeyListener.keyPressedAdapter(e -> {
+            if(e.keyCode == SWT.CR) {
+                Object selected = fTableViewer.getStructuredSelection().getFirstElement();
+                if(selected != null) {
+                    fTableViewer.editElement(selected, 1);
+                }
+            }
+        }));
 
         hookContextMenu();
     }
@@ -511,6 +538,39 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
 
         return items;
     }
+    
+    /**
+     * @return All unique Property Values for an entire model (sorted)
+     */
+    private String[] getAllUniquePropertyValuesForKeyForModel(String key) {
+        IArchimateModel model = getArchimateModel();
+
+        Set<String> set = new HashSet<String>();
+
+        for(Iterator<EObject> iter = model.eAllContents(); iter.hasNext();) {
+            EObject element = iter.next();
+            if(element instanceof IProperty) {
+                IProperty p = (IProperty)element;
+                if(p.getKey().equals(key)) {
+                    String value = p.getValue();
+                    if(StringUtils.isSetAfterTrim(value)) {
+                        set.add(value);
+                    }
+                }
+            }
+        }
+
+        String[] items = set.toArray(new String[set.size()]);
+        Arrays.sort(items, new Comparator<String>() {
+            @Override
+            public int compare(String s1, String s2) {
+                return s1.compareToIgnoreCase(s2);
+            }
+        });
+
+        return items;
+    }
+
 
     // -----------------------------------------------------------------------------------------------------------------
     //
@@ -816,11 +876,11 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
      * Value Editor
      */
     private class ValueEditingSupport extends EditingSupport {
-        TextCellEditor cellEditor;
+        StringComboBoxCellEditor cellEditor;
 
         public ValueEditingSupport(ColumnViewer viewer) {
             super(viewer);
-            cellEditor = new TextCellEditor((Composite)viewer.getControl());
+            cellEditor = new StringComboBoxCellEditor((Composite)viewer.getControl(), new String[0], true);
             
             // Nullify some global Action Handlers so that this cell editor can handle them
             hookCellEditorGlobalActionHandler(cellEditor);
@@ -828,6 +888,13 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
 
         @Override
         protected CellEditor getCellEditor(Object element) {
+            String[] items = new String[0];
+
+            if(isAlive(fPropertiesElement)) {
+                items = getAllUniquePropertyValuesForKeyForModel(((IProperty)element).getKey());
+            }
+
+            cellEditor.setItems(items);
             return cellEditor;
         }
 
@@ -1130,7 +1197,7 @@ public class UserPropertiesSection extends AbstractECorePropertySection {
             Table table = new Table(tableComp, SWT.MULTI | SWT.FULL_SELECTION | SWT.CHECK);
             tableViewer = new CheckboxTableViewer(table);
             tableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
-
+            
             tableViewer.getTable().setLinesVisible(true);
 
             tableViewer.setComparator(new ViewerComparator());

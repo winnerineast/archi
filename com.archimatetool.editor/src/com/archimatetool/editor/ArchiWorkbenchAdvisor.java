@@ -15,7 +15,6 @@ import org.eclipse.ui.application.WorkbenchAdvisor;
 import org.eclipse.ui.application.WorkbenchWindowAdvisor;
 
 import com.archimatetool.editor.perspectives.MainPerspective;
-import com.archimatetool.editor.ui.ThemeUtils;
 
 
 /**
@@ -25,6 +24,7 @@ import com.archimatetool.editor.ui.ThemeUtils;
  * 
  * @author Phillip Beauvoir
  */
+@SuppressWarnings("nls")
 public class ArchiWorkbenchAdvisor
 extends WorkbenchAdvisor
 {
@@ -41,17 +41,12 @@ extends WorkbenchAdvisor
         // Save and restore stuff
         configurer.setSaveAndRestore(true);
         
-        // Rounded tabs are set on by default
-        PlatformUI.getPreferenceStore().setDefault(IWorkbenchPreferenceConstants.SHOW_TRADITIONAL_STYLE_TABS, false);
-        
-        // Progress
-        // PlatformUI.getPreferenceStore().setValue(IWorkbenchPreferenceConstants.SHOW_PROGRESS_ON_STARTUP, true);
+        // If System Property in VM arguments is "-Dshowheap=true" then Show Heap Widget
+        PlatformUI.getPreferenceStore().setValue(IWorkbenchPreferenceConstants.SHOW_MEMORY_MONITOR,
+                "true".equals(System.getProperty("showheap")));
 
         // Show Help Button by default on Dialogs
         TrayDialog.setDialogHelpAvailable(true);
-        
-        // Ensure we have a default theme or light/dark theme as per OS
-        ThemeUtils.setDefaultTheme();
     }
     
     @Override

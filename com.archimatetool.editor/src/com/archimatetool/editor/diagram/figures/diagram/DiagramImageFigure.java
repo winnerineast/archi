@@ -14,8 +14,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 
+import com.archimatetool.editor.ArchiPlugin;
 import com.archimatetool.editor.diagram.figures.AbstractDiagramModelObjectFigure;
 import com.archimatetool.editor.model.IArchiveManager;
+import com.archimatetool.editor.preferences.IPreferenceConstants;
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.editor.ui.IArchiImages;
 import com.archimatetool.editor.ui.ImageFactory;
@@ -35,7 +37,7 @@ public class DiagramImageFigure extends AbstractDiagramModelObjectFigure {
     private Color fBorderColor;
     
     // This is way faster than Draw2D re-drawing the original image at scale
-    private boolean useScaledImage = true;
+    boolean useScaledImage = ArchiPlugin.INSTANCE.getPreferenceStore().getBoolean(IPreferenceConstants.USE_SCALED_IMAGES);
     
     public DiagramImageFigure(IDiagramModelImage diagramModelImage) {
         super(diagramModelImage);
@@ -94,12 +96,24 @@ public class DiagramImageFigure extends AbstractDiagramModelObjectFigure {
         
         graphics.setAlpha(getDiagramModelObject().getAlpha());
         
+        Rectangle bounds = getBounds().getCopy();
+        
+        bounds.width--;
+        bounds.height--;
+        
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
+        
         if(fImage != null) {
+            // Faster but no transparency
             if(useScaledImage) {
                 rescaleImage();
+                graphics.pushState();
+                graphics.clipRect(bounds); // Need to do this
                 graphics.drawImage(fImage, bounds.x, bounds.y);
+                graphics.popState();
             }
-            // This is way too slow
+            // This is slower
             else {
                 graphics.drawImage(fImage, 0, 0, fImage.getBounds().width, fImage.getBounds().height,
                         bounds.x, bounds.y, bounds.width, bounds.height);
@@ -115,7 +129,7 @@ public class DiagramImageFigure extends AbstractDiagramModelObjectFigure {
         if(getBorderColor() != null) {
             graphics.setAlpha(getDiagramModelObject().getLineAlpha());
             graphics.setForegroundColor(getBorderColor());
-            graphics.drawRectangle(new Rectangle(bounds.x, bounds.y, bounds.width - 1, bounds.height - 1));
+            graphics.drawRectangle(bounds.x, bounds.y, bounds.width, bounds.height);
         }
         
         graphics.popState();
@@ -157,7 +171,7 @@ public class DiagramImageFigure extends AbstractDiagramModelObjectFigure {
     }
     
     /**
-     * Use a re-usable rescaled image because drawing an image to scale in paintFigure(Graphics) is too slow
+     * Use a re-usable rescaled image if drawing an image to scale in paintFigure(Graphics) is too slow
      */
     protected void rescaleImage() {
         int width = bounds.width;

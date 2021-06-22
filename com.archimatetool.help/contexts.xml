@@ -53,6 +53,10 @@
        <topic href="help/Text/properties_canvas_sticky.html" label="Sticky Properties"/>
        <topic href="help/Text/properties_canvas_connection.html" label="Connection Properties"/>
     </context>
+    <context id="labelPropertySection" title="Label Expression">
+       <description>Edit Label Expression.</description>
+       <topic href="https://github.com/archimatetool/archi/wiki/Label-Expressions" label="Label Expressions"/>
+    </context>
     <context id="folderSection" title="Folder Properties">
        <description>Edit Folder Properties.</description>
        <topic href="help/Text/properties_folder.html" label="Folder Properties"/>
@@ -84,6 +88,10 @@
        <topic href="help/Text/view_palette_creation_tools.html" label="Palette Creation Tools"/>
        <topic href="help/Text/view_format_painter.html" label="The Format Painter"/>
     </context>
+    <context id="prefsAppearance" title="Appearance Preferences">
+       <description>Change Appearance, Colours and Fonts Preferences.</description>
+       <topic href="help/Text/prefs_appearance.html" label="Appearance Preferences"/>
+    </context>
     <context id="prefsCanvas" title="Canvas Preferences">
        <description>Edit the Canvas Modelling Toolkit Preferences.</description>
        <topic href="help/Text/prefs_canvas.html" label="Canvas Modelling Toolkit Preferences"/>
@@ -91,10 +99,6 @@
     <context id="prefsConnections" title="Connections Preferences">
        <description>Edit the Connections Preferences.</description>
        <topic href="help/Text/prefs_connections.html" label="Connections Preferences"/>
-    </context>
-    <context id="prefsColoursFonts" title="Colours and Fonts Preferences">
-       <topic href="help/Text/prefs_colours_fonts.html" label="Colours and Fonts Preferences"/>
-       <description>Edit the application colours</description>
     </context>
     <context id="prefsDiagram" title="Diagram Preferences">
        <description>Edit the Diagram Preferences.</description>
@@ -175,11 +179,11 @@
     </context>
     <context id="ExportAsImagePage">
        <description>Export the current View as an image</description>
-       <topic href="help/Text/exporting.html" label="Export As Image"/>
+       <topic href="help/Text/view_export.html" label="Export View As Image"/>
     </context>
     <context id="ExportAsCSVPage">
        <description>Export the current Model to CSV files</description>
-       <topic href="help/Text/exporting.html" label="Export As CSV"/>
+       <topic href="help/Text/csv.html" label="Export As CSV"/>
     </context>
     <context id="GenerateViewDialog">
        <description>Generate a View from Elements</description>
@@ -196,6 +200,10 @@
     <context id="ManagePluginsDialog">
        <description>Manage Plug-ins</description>
        <topic href="help/Text/plugins.html" label="Managing Plug-ins"/>
+    </context>
+    <context id="ImportModel">
+       <description>Import a Model into the Current Model</description>
+       <topic href="help/Text/import-model.html" label="Import a Model into the Current Model"/>
     </context>
     
 </contexts>

@@ -7,6 +7,7 @@ package com.archimatetool.editor.diagram;
 
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.ui.IEditorPart;
 
 import com.archimatetool.editor.preferences.IPreferenceConstants;
@@ -57,6 +58,9 @@ public class ArchimateDiagramModelFactory implements ICreationFactory {
 
         // Set user default colors as set in prefs
         ColorFactory.setDefaultColors(dmo);
+        
+        // Gradient
+        dmo.setGradient(Preferences.STORE.getInt(IPreferenceConstants.DEFAULT_GRADIENT));
  
         return dmo;
     }
@@ -97,7 +101,7 @@ public class ArchimateDiagramModelFactory implements ICreationFactory {
             return null;
         }
         
-        Object object = IArchimateFactory.eINSTANCE.create(fTemplate);
+        EObject object = IArchimateFactory.eINSTANCE.create(fTemplate);
         
         // Connection created from Relationship Template
         if(object instanceof IArchimateRelationship) {
@@ -116,11 +120,16 @@ public class ArchimateDiagramModelFactory implements ICreationFactory {
             IDiagramModelGroup group = (IDiagramModelGroup)object;
             group.setName(ArchiLabelProvider.INSTANCE.getDefaultName(fTemplate));
             ColorFactory.setDefaultColors(group);
+            // Gradient
+            group.setGradient(Preferences.STORE.getInt(IPreferenceConstants.DEFAULT_GRADIENT));
         }
         
         // Note
         else if(object instanceof IDiagramModelNote) {
-            ColorFactory.setDefaultColors((IDiagramModelObject)object);
+            IDiagramModelNote note = (IDiagramModelNote)object;
+            ColorFactory.setDefaultColors(note);
+            // Gradient
+            note.setGradient(Preferences.STORE.getInt(IPreferenceConstants.DEFAULT_GRADIENT));
         }
         
         // Connection
@@ -128,14 +137,20 @@ public class ArchimateDiagramModelFactory implements ICreationFactory {
             ColorFactory.setDefaultColors((IDiagramModelConnection)object);
         }
         
+        IGraphicalObjectUIProvider provider = (IGraphicalObjectUIProvider)ObjectUIFactory.INSTANCE.getProvider(object);
+
         if(object instanceof ITextAlignment) {
-            IGraphicalObjectUIProvider provider = (IGraphicalObjectUIProvider)ObjectUIFactory.INSTANCE.getProvider((IDiagramModelObject)object);
             ((IDiagramModelObject)object).setTextAlignment(provider.getDefaultTextAlignment());
         }
                 
         if(object instanceof ITextPosition) {
-            IGraphicalObjectUIProvider provider = (IGraphicalObjectUIProvider)ObjectUIFactory.INSTANCE.getProvider((ITextPosition)object);
             ((ITextPosition)object).setTextPosition(provider.getDefaultTextPosition());
+        }
+        
+        // Add new bounds with a default user size
+        if(object instanceof IDiagramModelObject) {
+            Dimension size = provider.getUserDefaultSize();
+            ((IDiagramModelObject)object).setBounds(0, 0, size.width, size.height);
         }
 
         return object;

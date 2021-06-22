@@ -8,15 +8,12 @@ package com.archimatetool.editor.diagram.figures.elements;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Graphics;
 import org.eclipse.draw2d.geometry.Point;
-import org.eclipse.draw2d.geometry.PointList;
 import org.eclipse.draw2d.geometry.Rectangle;
+import org.eclipse.swt.graphics.Path;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractTextControlContainerFigure;
-import com.archimatetool.editor.diagram.figures.FigureUtils;
 import com.archimatetool.editor.diagram.figures.IFigureDelegate;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.editor.ui.ColorFactory;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 
@@ -49,6 +46,12 @@ public class DeviceFigure extends AbstractTextControlContainerFigure {
         
         Rectangle bounds = getBounds().getCopy();
         
+        bounds.width--;
+        bounds.height--;
+        
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
+        
         int height_indent = bounds.height / 6;
         
         graphics.setAlpha(getAlpha());
@@ -58,23 +61,22 @@ public class DeviceFigure extends AbstractTextControlContainerFigure {
         }
         
         // Bottom part
-        PointList points1 = new PointList();
-        points1.addPoint(bounds.x, bounds.y + bounds.height - 1);
-        points1.addPoint(bounds.x + INDENT , bounds.y + bounds.height - height_indent - 1);
-        points1.addPoint(bounds.x + bounds.width - INDENT, bounds.y + bounds.height - height_indent - 1);
-        points1.addPoint(bounds.x + bounds.width, bounds.y + bounds.height - 1);
-                
         graphics.setBackgroundColor(ColorFactory.getDarkerColor(getFillColor()));
-        graphics.fillPolygon(points1);
+
+        Path path = new Path(null);
+        path.moveTo(bounds.x, bounds.y + bounds.height);
+        path.lineTo(bounds.x + INDENT + 1, bounds.y + bounds.height - height_indent);
+        path.lineTo(bounds.x + bounds.width - INDENT, bounds.y + bounds.height - height_indent);
+        path.lineTo(bounds.x + bounds.width, bounds.y + bounds.height);
+        path.lineTo(bounds.x, bounds.y + bounds.height);
+        graphics.fillPath(path);
+        path.dispose();
         
         graphics.setForegroundColor(getLineColor());
         graphics.setAlpha(getLineAlpha());
-        graphics.drawLine(bounds.x, bounds.y + bounds.height - 1,
-                bounds.x + bounds.width, bounds.y + bounds.height - 1);
-        graphics.drawLine(bounds.x, bounds.y + bounds.height - 1,
-                bounds.x + INDENT, bounds.y + bounds.height - height_indent - 1);
-        graphics.drawLine(bounds.x + bounds.width, bounds.y + bounds.height - 1,
-                bounds.x + bounds.width - INDENT, bounds.y + bounds.height - height_indent - 1);
+        graphics.drawLine(bounds.x, bounds.y + bounds.height, bounds.x + bounds.width, bounds.y + bounds.height);
+        graphics.drawLine(bounds.x, bounds.y + bounds.height, bounds.x + INDENT + 1, bounds.y + bounds.height - height_indent);
+        graphics.drawLine(bounds.x + bounds.width, bounds.y + bounds.height, bounds.x + bounds.width - INDENT + 1, bounds.y + bounds.height - height_indent);
 
         // Top part
         Rectangle rect = new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height - height_indent);
@@ -82,21 +84,15 @@ public class DeviceFigure extends AbstractTextControlContainerFigure {
         graphics.setBackgroundColor(getFillColor());
         graphics.setAlpha(getAlpha());
 
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        Pattern gradient = applyGradientPattern(graphics, bounds);
         
         graphics.fillRoundRectangle(rect, 30, 30);
         
-        if(gradient != null) {
-            gradient.dispose();
-        }
+        disposeGradientPattern(graphics, gradient);
 
         graphics.setForegroundColor(getLineColor());
         graphics.setAlpha(getLineAlpha());
-        rect = new Rectangle(bounds.x, bounds.y, bounds.width - 1, bounds.height - height_indent - 1);
+        rect = new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height - height_indent);
         graphics.drawRoundRectangle(rect, 30, 30);
         
         graphics.popState();

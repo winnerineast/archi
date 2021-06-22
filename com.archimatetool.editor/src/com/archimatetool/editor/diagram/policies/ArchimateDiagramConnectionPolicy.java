@@ -13,10 +13,13 @@ import org.eclipse.gef.GraphicalEditPart;
 import org.eclipse.gef.Request;
 import org.eclipse.gef.RequestConstants;
 import org.eclipse.gef.commands.Command;
+import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.gef.editpolicies.GraphicalNodeEditPolicy;
 import org.eclipse.gef.requests.CreateConnectionRequest;
 import org.eclipse.gef.requests.ReconnectRequest;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.editor.diagram.commands.CreateDiagramArchimateConnectionWithDialogCommand;
 import com.archimatetool.editor.diagram.commands.CreateDiagramConnectionCommand;
@@ -24,6 +27,8 @@ import com.archimatetool.editor.diagram.commands.DiagramCommandFactory;
 import com.archimatetool.editor.diagram.commands.ReconnectDiagramConnectionCommand;
 import com.archimatetool.editor.diagram.figures.ITargetFeedbackFigure;
 import com.archimatetool.editor.model.DiagramModelUtils;
+import com.archimatetool.editor.preferences.IPreferenceConstants;
+import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IArchimateRelationship;
@@ -138,48 +143,84 @@ public class ArchimateDiagramConnectionPolicy extends GraphicalNodeEditPolicy {
     private Command createArchimateReconnectCommand(IDiagramModelArchimateConnection connection, IDiagramModelArchimateComponent dmc, boolean isSourceCommand) {
         IArchimateRelationship relationship = connection.getArchimateRelationship();
         IArchimateConcept newConcept = dmc.getArchimateConcept();
-        
-        CompoundCommand cmd = new CompoundCommand();
-        
-        // Add commands for other instances of diagram connections
-        for(IDiagramModelArchimateConnection matchingConnection : relationship.getReferencingDiagramConnections()) {
+
+        CompoundCommand cmd = new CompoundCommand() {
+            boolean affectsOtherViews = false;
             
-            // The same diagram
-            if(matchingConnection.getDiagramModel() == connection.getDiagramModel()) {
-                // If we are reconnecting to a dmc with a different concept then reconnect all instances on this diagram
-                if(isNewConnection(matchingConnection, dmc, isSourceCommand)) {
-                    cmd.add(createReconnectCommand(matchingConnection, dmc, isSourceCommand));
-                }
-                // Else if we are reconnecting to a dmc with the same concept then reconnect only this one instance of the connection
-                else if(connection == matchingConnection) {
-                    cmd.add(createReconnectCommand(matchingConnection, dmc, isSourceCommand));
-                }
-            }
-            
-            // A different diagram
-            else {
-                // Does the new target concept exist on the diagram?
-                List<IDiagramModelArchimateComponent> list = DiagramModelUtils.findDiagramModelComponentsForArchimateConcept(matchingConnection.getDiagramModel(), newConcept);
+            @Override
+            public void execute() {
+                // Lazily create commands
+                createCommands();
                 
-                // Yes, so reconnect to it *if* it is different than the existing concept
-                if(!list.isEmpty()) {
-                    // Get the first instance of the new component
-                    IDiagramModelArchimateComponent newComponent = list.get(0);
+                super.execute();
+                
+                // Show message that it affected other Viewss
+                if(affectsOtherViews && Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_WARNING_ON_RECONNECT)) {
+                    boolean answer = MessageDialog.openQuestion(
+                            Display.getDefault().getActiveShell(),
+                            Messages.ArchimateDiagramConnectionPolicy_0,
+                            Messages.ArchimateDiagramConnectionPolicy_1
+                            + "\n\n" + //$NON-NLS-1$
+                            Messages.ArchimateDiagramConnectionPolicy_2);
                     
-                    // If the instance's concept is different than the original concept then reconnect
-                    if(isNewConnection(matchingConnection, newComponent, isSourceCommand)) {
-                        cmd.add(createReconnectCommand(matchingConnection, newComponent, isSourceCommand));
+                    if(!answer) {
+                        // We have to call undo() later in the thread as the Command is not yet on the CommandStack
+                        Display.getDefault().asyncExec(() -> ((CommandStack)connection.getAdapter(CommandStack.class)).undo());
                     }
                 }
-                
-                // No, so delete the matching connection
-                else {
-                    cmd.add(DiagramCommandFactory.createDeleteDiagramConnectionCommand(matchingConnection));
+            }
+            
+            @Override
+            public boolean canExecute() {
+                // Can't reconnect to the same dmc
+                return isSourceCommand ? connection.getSource() != dmc : connection.getTarget() != dmc;
+            }
+            
+            // Add commands for all instances of diagram connections
+            private void createCommands() {
+                for(IDiagramModelArchimateConnection matchingConnection : relationship.getReferencingDiagramConnections()) {
+                    // The same diagram
+                    if(matchingConnection.getDiagramModel() == connection.getDiagramModel()) {
+                        // If we are reconnecting to a dmc with a different concept then reconnect all instances on this diagram
+                        if(isNewConnection(matchingConnection, dmc, isSourceCommand)) {
+                            add(createReconnectCommand(matchingConnection, dmc, isSourceCommand));
+                        }
+                        // Else if we are reconnecting to a dmc with the same concept then reconnect only this one instance of the connection
+                        else if(connection == matchingConnection) {
+                            add(createReconnectCommand(matchingConnection, dmc, isSourceCommand));
+                        }
+                    }
+                    // A different diagram
+                    else {
+                        // Does the new target concept exist on the diagram?
+                        List<IDiagramModelArchimateComponent> list = DiagramModelUtils.findDiagramModelComponentsForArchimateConcept(matchingConnection.getDiagramModel(), newConcept);
+
+                        // Yes, so reconnect to it *if* it is different than the existing concept
+                        if(!list.isEmpty()) {
+                            // Get the first instance of the new component
+                            IDiagramModelArchimateComponent newComponent = list.get(0);
+
+                            // If the instance's concept is different than the original concept then reconnect
+                            if(isNewConnection(matchingConnection, newComponent, isSourceCommand)) {
+                                Command cmd = createReconnectCommand(matchingConnection, newComponent, isSourceCommand);
+                                if(cmd.canExecute()) {
+                                    affectsOtherViews = true;
+                                    add(cmd);
+                                }
+                            }
+                        }
+
+                        // No, so delete the matching connection
+                        else {
+                            add(DiagramCommandFactory.createDeleteDiagramConnectionCommand(matchingConnection));
+                            affectsOtherViews = true;
+                        }
+                    }
                 }
             }
-        }
+        };
         
-        return cmd.unwrap();
+        return cmd;
     }
     
     /**

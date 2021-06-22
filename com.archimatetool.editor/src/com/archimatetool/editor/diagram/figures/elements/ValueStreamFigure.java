@@ -14,11 +14,8 @@ import org.eclipse.swt.graphics.Path;
 import org.eclipse.swt.graphics.Pattern;
 
 import com.archimatetool.editor.diagram.figures.AbstractTextControlContainerFigure;
-import com.archimatetool.editor.diagram.figures.FigureUtils;
 import com.archimatetool.editor.diagram.figures.IFigureDelegate;
 import com.archimatetool.editor.diagram.figures.RoundedRectangleFigureDelegate;
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 
 
@@ -48,8 +45,14 @@ public class ValueStreamFigure extends AbstractTextControlContainerFigure {
         
         Rectangle bounds = getBounds().getCopy();
         
+        bounds.width--;
+        bounds.height--;
+
+        // Set line width here so that the whole figure is constrained, otherwise SVG graphics will have overspill
+        setLineWidth(graphics, 1, bounds);
+
         int indent = Math.min(bounds.height / 2, bounds.width / 2);
-        int centre_y = bounds.y + bounds.height / 2 - 1;
+        int centre_y = bounds.y + bounds.height / 2;
         int point_startx = bounds.x + bounds.width - indent;
 
         graphics.setAlpha(getAlpha());
@@ -62,29 +65,24 @@ public class ValueStreamFigure extends AbstractTextControlContainerFigure {
         Path path = new Path(null);
         path.moveTo(bounds.x, bounds.y);
         path.lineTo(bounds.x + indent, centre_y);
-        path.lineTo(bounds.x, bounds.y + bounds.height - 1);
-        path.lineTo(point_startx, bounds.y + bounds.height - 1);
-        path.lineTo(bounds.x + bounds.width - 1, centre_y);
+        path.lineTo(bounds.x, bounds.y + bounds.height);
+        path.lineTo(point_startx, bounds.y + bounds.height);
+        path.lineTo(bounds.x + bounds.width, centre_y);
         path.lineTo(point_startx, bounds.y);
+        path.lineTo(bounds.x, bounds.y);
+        path.lineTo(bounds.x + indent, centre_y);
         
         // Fill
         graphics.setBackgroundColor(getFillColor());
 
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        Pattern gradient = applyGradientPattern(graphics, bounds);
 
         graphics.fillPath(path);
         
-        if(gradient != null) {
-            gradient.dispose();
-        }
+        disposeGradientPattern(graphics, gradient);
 
         // Outline
         graphics.setForegroundColor(getLineColor());
-        path.lineTo(bounds.x, bounds.y);
         graphics.drawPath(path);
         path.dispose();
         

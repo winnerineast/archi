@@ -39,22 +39,6 @@
            name="applicationCSSResources"
            value="platform:/plugin/com.archimatetool.editor.themes/themes/eclipse/images/">
      </property>
-     <property
-           name="startupProgressRect"
-           value="0,290,470,0">
-     </property>
-     <property
-           name="startupForegroundColor"
-           value="C0C0C0">
-     </property>
-     <property
-           name="startupMessageRect"
-           value="5,180,0,0">
-     </property>
-     <property
-           name="preferenceCustomization"
-           value="plugin_customization.ini">
-     </property>
       </product>
 	</extension>
 	
@@ -76,9 +60,53 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
+            class="com.archimatetool.editor.preferences.AppearancePreferencePage"
+            id="com.archimatetool.editor.prefsAppearance"
+            name="%prefsAppearance">
+         <keywordReference
+               id="keywords.prefsAppearance">
+         </keywordReference>
+      </page>
+      <page
+            category="com.archimatetool.editor.prefsAppearance"
+            class="com.archimatetool.editor.preferences.FontsPreferencePage"
+            id="com.archimatetool.editor.prefsFonts"
+            name="%prefsFonts">
+         <keywordReference
+               id="keywords.prefsColoursFonts">
+         </keywordReference>
+      </page>
+      <page
+            category="com.archimatetool.editor.prefsAppearance"
+            class="com.archimatetool.editor.preferences.ColoursPreferencePage"
+            id="com.archimatetool.editor.prefsColours"
+            name="%prefsColours">
+         <keywordReference
+               id="keywords.prefsColoursFonts">
+         </keywordReference>
+      </page>
+      <page
             class="com.archimatetool.editor.preferences.DiagramPreferencePage"
             id="com.archimatetool.editor.prefsDiagram"
             name="%prefsDiagram">
+         <keywordReference
+               id="keywords.prefsDiagram">
+         </keywordReference>
+      </page>
+      <page
+            category="com.archimatetool.editor.prefsDiagram"
+            class="com.archimatetool.editor.preferences.DiagramAppearancePreferencePage"
+            id="com.archimatetool.editor.prefsDiagramAppearance"
+            name="%prefsDiagramAppearance">
+         <keywordReference
+               id="keywords.prefsDiagram">
+         </keywordReference>
+      </page>
+      <page
+            category="com.archimatetool.editor.prefsDiagram"
+            class="com.archimatetool.editor.preferences.DiagramFiguresPreferencePage"
+            id="com.archimatetool.editor.prefsDiagramFigures"
+            name="%prefsDiagramFigures">
          <keywordReference
                id="keywords.prefsDiagram">
          </keywordReference>
@@ -100,11 +128,12 @@
          </keywordReference>
       </page>
       <page
-            class="com.archimatetool.editor.preferences.ColoursFontsPreferencePage"
-            id="com.archimatetool.editor.prefsColoursFonts"
-            name="%prefsColoursFonts">
+            category="com.archimatetool.editor.prefsConnections"
+            class="com.archimatetool.editor.preferences.ConnectionsARMPreferencePage"
+            id="com.archimatetool.editor.prefsARM"
+            name="%prefsARM">
          <keywordReference
-               id="keywords.prefsColoursFonts">
+               id="keywords.prefsConnections">
          </keywordReference>
       </page>
    </extension>
@@ -192,8 +221,13 @@
          <propertyTab
                afterTab="appearance.tab"
                category="appearance.category"
+               id="label.tab"
+               label="%propertyTab.label.4">
+         </propertyTab>
+         <propertyTab
+               afterTab="label.tab"
+               category="appearance.category"
                id="figure.tab"
-               indented="true"
                label="%propertyTab.label.3">
          </propertyTab>
       </propertyTabs>
@@ -301,24 +335,17 @@
                tab="appearance.tab">
          </propertySection>
          <propertySection
+               afterSection="connectionAppearanceSection"
+               class="com.archimatetool.editor.propertysections.LineColorSection"
+               filter="com.archimatetool.editor.propertysections.LineColorSection$Filter"
+               id="lineColorSection"
+               tab="appearance.tab">
+         </propertySection>
+         <propertySection
                afterSection="anySection"
                class="com.archimatetool.editor.propertysections.FontSection"
                filter="com.archimatetool.editor.propertysections.FontSection$Filter"
                id="fontSection"
-               tab="appearance.tab">
-         </propertySection>
-         <propertySection
-               afterSection="fontSection"
-               class="com.archimatetool.editor.propertysections.FontColorSection"
-               filter="com.archimatetool.editor.propertysections.FontColorSection$Filter"
-               id="fontColorSection"
-               tab="appearance.tab">
-         </propertySection>
-         <propertySection
-               afterSection="fontColorSection"
-               class="com.archimatetool.editor.propertysections.LineColorSection"
-               filter="com.archimatetool.editor.propertysections.LineColorSection$Filter"
-               id="lineColorSection"
                tab="appearance.tab">
          </propertySection>
          <propertySection
@@ -329,13 +356,6 @@
                tab="appearance.tab">
          </propertySection>
          <propertySection
-               afterSection="textAlignmentSection"
-               class="com.archimatetool.editor.propertysections.TextPositionSection"
-               filter="com.archimatetool.editor.propertysections.TextPositionSection$Filter"
-               id="textPositionSection"
-               tab="appearance.tab">
-         </propertySection>
-         <propertySection
                afterSection="textPositionSection"
                class="com.archimatetool.editor.propertysections.OpacitySection"
                filter="com.archimatetool.editor.propertysections.OpacitySection$Filter"
@@ -343,10 +363,10 @@
                tab="appearance.tab">
          </propertySection>
          <propertySection
-               afterSection="opacitySection"
-               class="com.archimatetool.editor.propertysections.OutlineOpacitySection"
-               filter="com.archimatetool.editor.propertysections.OutlineOpacitySection$Filter"
-               id="outlineOpacitySection"
+               afterSection="lineColorSection"
+               class="com.archimatetool.editor.propertysections.GradientSection"
+               filter="com.archimatetool.editor.propertysections.GradientSection$Filter"
+               id="gradientSection"
                tab="appearance.tab">
          </propertySection>
          <propertySection
@@ -399,7 +419,7 @@
                tab="main.tab">
          </propertySection>
          <propertySection
-               afterSection="fontColorSection"
+               afterSection="fillColorSection"
                class="com.archimatetool.editor.propertysections.BorderColorSection"
                filter="com.archimatetool.editor.propertysections.BorderColorSection$Filter"
                id="borderColorSection"
@@ -419,18 +439,24 @@
                tab="main.tab">
          </propertySection>
          <propertySection
-               afterSection="fontColorSection"
+               afterSection="gradientSection"
                class="com.archimatetool.editor.propertysections.NoteBorderTypeSection"
                filter="com.archimatetool.editor.propertysections.NoteBorderTypeSection$Filter"
                id="noteBorderTypeSection"
                tab="appearance.tab">
          </propertySection>
          <propertySection
-               afterSection="fontColorSection"
+               afterSection="gradientSection"
                class="com.archimatetool.editor.propertysections.GroupBorderTypeSection"
                filter="com.archimatetool.editor.propertysections.GroupBorderTypeSection$Filter"
                id="groupBorderTypeSection"
                tab="appearance.tab">
+         </propertySection>
+         <propertySection
+               class="com.archimatetool.editor.propertysections.LabelRendererSection"
+               filter="com.archimatetool.editor.propertysections.LabelRendererSection$Filter"
+               id="labelRendererSection"
+               tab="label.tab">
          </propertySection>
       </propertySections>
    </extension>
@@ -456,6 +482,10 @@
       <key
             schemeId="com.archimatetool.editor.keybindings"
             sequence="M1+F8">
+      </key>
+      <key
+            schemeId="com.archimatetool.editor.keybindings"
+            sequence="M1+M2+E">
       </key>
       <key
             commandId="com.archimatetool.editor.action.newModel"
@@ -544,12 +574,12 @@
       </key>
       <key
             commandId="org.eclipse.gef.zoom_in"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            schemeId="com.archimatetool.editor.keybindings"
             sequence="M1++">
       </key>
       <key
             commandId="org.eclipse.gef.zoom_normal"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            schemeId="com.archimatetool.editor.keybindings"
             sequence="M1+0">
       </key>
       <key
@@ -671,9 +701,18 @@
             id="com.archimatetool.editor.fullscreen.macos.commandFullScreen"
             name="%command.name.16">
       </command>
+      <command
+            defaultHandler="com.archimatetool.editor.actions.ShowPropertiesManagerHandler"
+            id="com.archimatetool.editor.action.openPropertiesDialog"
+            name="%command.name.17">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.keywords">
+      <keyword
+            id="keywords.prefsAppearance"
+            label="%keyword.label.5">
+      </keyword>
       <keyword
             id="keywords.prefsGeneral"
             label="%keyword.label">
@@ -792,6 +831,16 @@
             <visibleWhen
                   checkEnabled="true">
             </visibleWhen>
+         </command>
+      </menuContribution>
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:tools?after=com.archimatetool.action.generateView">
+         <command
+               commandId="com.archimatetool.editor.action.openPropertiesDialog"
+               icon="img/prop_ps.png"
+               label="%command.label.5"
+               style="push">
          </command>
       </menuContribution>
    </extension>

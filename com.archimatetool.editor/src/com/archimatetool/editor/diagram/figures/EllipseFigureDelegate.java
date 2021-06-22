@@ -9,9 +9,6 @@ import org.eclipse.draw2d.Graphics;
 import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.swt.graphics.Pattern;
 
-import com.archimatetool.editor.preferences.IPreferenceConstants;
-import com.archimatetool.editor.preferences.Preferences;
-
 
 
 /**
@@ -31,6 +28,12 @@ public class EllipseFigureDelegate extends AbstractFigureDelegate {
         
         Rectangle bounds = getBounds();
 
+        bounds.width--;
+        bounds.height--;
+
+        // Line Width
+        setLineWidth(graphics, 1, bounds);
+        
         graphics.setAlpha(getAlpha());
         
         if(!isEnabled()) {
@@ -39,21 +42,13 @@ public class EllipseFigureDelegate extends AbstractFigureDelegate {
         
         graphics.setBackgroundColor(getFillColor());
         
-        Pattern gradient = null;
-        if(Preferences.STORE.getBoolean(IPreferenceConstants.SHOW_GRADIENT)) {
-            gradient = FigureUtils.createGradient(graphics, bounds, getFillColor(), getAlpha());
-            graphics.setBackgroundPattern(gradient);
-        }
+        Pattern gradient = applyGradientPattern(graphics, bounds);
         
         graphics.fillOval(bounds);
         
-        if(gradient != null) {
-            gradient.dispose();
-        }
-
+        disposeGradientPattern(graphics, gradient);
+        
         // Outline
-        bounds.width--;
-        bounds.height--;
         graphics.setAlpha(getLineAlpha());
         graphics.setForegroundColor(getLineColor());
         graphics.drawOval(bounds);
